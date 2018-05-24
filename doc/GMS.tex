@@ -43,7 +43,7 @@ infrastructure that enable VO applications.
 
 \section{Introduction}
 
-Through standard IVOA protocols, many astronomy data centres and institutes offer users access to datasets (SIA \citep{std:SIAP}, Datalink \citep{std:Datalink}, etc), metadata (TAP \citep{std:TAP}) and storage (VOSpace \citep{std:VOSpace}).  In some cases this information is proprietary--it is only allowed to be accessed by certain individuals.  Due to the wide variety and inherently institute-specific set of rules that may define how the information is proprietary, it is beneficial to the owners and maintainers of the rules to have a standard way of describing who has access.  Additionally, the rules describing resource access may be determined by an entity external to the holder of these resources.  To these ends, this document sets out a standard, programatic, and interoperable method of determining whether a given user is allowed to access a given resource.
+Through standard IVOA protocols, many astronomy data centres and institutes offer users access to datasets (SIA \citep{std:SIAP}, Datalink \citep{std:Datalink}, etc), metadata (TAP \citep{std:TAP}) and storage (VOSpace \citep{std:VOSpace}).  In some cases this information is proprietary--it is only allowed to be accessed by certain individuals.  Due to the wide variety and inherently institute-specific set of rules that may define how the information is proprietary, it is beneficial to the owners and maintainers of the rules to have a standard way of describing who has access to what resources.  Additionally, the rules describing resource access may be determined by an entity external to the holder of these resources.  To these ends, this document sets out a standard, programatic, and interoperable method of determining whether a given user is allowed to access a given resource.
 
 The ideas presented by GMS enable data centres to do authorization checks in an interoperable fashion.  In the context of authorization, interoperability can viewed on two levels:  interoperability amongst the cooperating services \emph{within} a data centre, and interoperability \emph{between} data centres.  Because of the orthogonal nature of authorization, these levels amount to the same problem.
 
@@ -116,7 +116,8 @@ IVOA architecture \citep{note:VOARCH}.
 When looking at a system that has proprietary resources that need to be protected, it is clear that there are two distinct phases to authorization:  the assignment of the rules protecting the resources, and the attempts by various users to gain access to those resources.  They are described here:
 
 \begin{enumerate}
-\item The owner(s) of a resource may, at any time, change the rules by which a resource may be accessed. This is the \emph{granting and revoking of access}.\item When users try to access resources, the granting rules for that resource are evaluated at runtime. This is the \emph{authorization check}.
+\item The owner(s) of a resource may, at any time, change the rules by which a resource may be accessed. This is the \emph{granting and revoking of access}.
+\item When users try to access resources, the granting rules for that resource are evaluated at runtime. This is the \emph{authorization check}.
 \end{enumerate}
 
 With these phases in mind and with the use cases defined, we can state that the goals of authorization is to:
@@ -141,7 +142,7 @@ But if there is a central repository of groups of users, we introduce other prob
 
 Resources must then reference a group by a URI with a location and a name that is unique within that location.  This is called the Group Identifier.
 
-Systems must use the information in the group identifier to query location to determine if the user is a member of the group.  Because the location may outside of the immediate vicinity of the resource, this query must be performed in a standard and accessible manner and so is defined as a RESTful interface to group membership. 
+Systems must use the information in the group identifier to query location to determine if the user is a member of the group.  Because the location may be outside of the immediate vicinity of the resource, this query must be performed in a standard and accessible manner and so is defined as a RESTful interface to group membership. 
 
 \subsection{Group Identifiers}
 
@@ -158,13 +159,17 @@ Below is an example group identifier:
 \begin{verbatim}
 ivo://authority.example.com/gms?groupName
 \end{verbatim}
-To resolve the host GMS service, lookup, in the Registry, the URL for resourceID:
 
-\begin{verbatim}ivo://authority.example.com/gms
+To resolve the host GMS service, lookup, in the Registry, the URL for resourceID:
+
+\begin{verbatim}
+ivo://authority.example.com/gms
 \end{verbatim}
-This may result in (for example):
 
-\begin{verbatim}http://server.example.com/myGMS
+This may result in (for example):
+
+\begin{verbatim}
+http://server.example.com/myGMS
 \end{verbatim}
 
 This is the URL to the GMS service with information on the group named 'groupName'.
@@ -175,7 +180,7 @@ This is the URL to the GMS service with information on the group named 'groupNam
 
 The concept of users and user identity is core to group authorization.  When the owner of a resource would like to grant access to that resource to an individual, that individual must be referenced in some way.  When a system makes a call to a GMS service to determine if the user trying to access the resource is a member of a group, the GMS service needs to identify that user with the users in various groups.  
 
-The collection of data centres and astronomy institutes likely have many ways of identifying users.  They could be using external identity providers, they could have a local database of users, or may have a combination of these and other approaches.  Section ~ref(subsection:useridentity) has some recommendations on how to best design a user identity system, but this specification does not require such a design.  Instead, it requires simply that users can be uniquely identified within the scope of a GMS service's domain.  If a user identity reaches beyond the scope of a GMS service's domain (such as an X.500 distinguished name \citep{std:RFC1779}), then it, too, may be referenced by the service.
+The collection of data centres and astronomy institutes likely have many ways of identifying users.  They could be using external identity providers, they could have a local database of users, or may have a combination of these and other approaches.  Section~\ref(subsection:useridentity) has some recommendations on how to best design a user identity system, but this specification does not require such a design.  Instead, it requires simply that users can be uniquely identified within the scope of a GMS service's domain.  If a user identity reaches beyond the scope of a GMS service's domain (such as an X.500 distinguished name \citep{std:RFC1779}), then it, too, may be referenced by the service.
 
 The list of officially supported identities can be found in the IVOA Single-Sign-On Profile: Authentication Mechanisms \citep{std:SSOAUTH}.
 
@@ -190,12 +195,15 @@ TBD...
 \subsection{API definition}
 
 Functionally required:
-\begin{itemize}\item boolean isMember(Group)\item list<Group> getMemberships()
+\begin{itemize}
+\item boolean isMember(Group)
+\item list<Group> getMemberships()
 \end{itemize}
 
 Group Membership System RESTful API
 \begin{verbatim}
-GET /gms/groupsGET /gms/groups/{group}
+GET /gms/groups
+GET /gms/groups/{group}
 \end{verbatim}
 
 Note that there is no information about the user or the resource being protected in the GMS API.  This is intentional.
@@ -239,8 +247,11 @@ If one of the contained groups actually exists at another GMS instance, perhaps 
 TBD
 
 \subsection {Convenient extensions to GMS}
-Group Management API could be provided:
-\begin{itemize}\item create/modify/delete groups\item Add/remove members
+
+Group Management API could be provided:
+\begin{itemize}
+\item create/modify/delete groups
+\item Add/remove members
 \end{itemize}
 
 \section {Future considerations}
