@@ -182,7 +182,7 @@ The concept of users and user identity is core to group authorization.  When the
 
 The collection of data centres and astronomy institutes likely have many ways of identifying users.  They could be using external identity providers, they could have a local database of users, or may have a combination of these and other approaches.  Section~\ref(subsection:useridentity) has some recommendations on how to best design a user identity system, but this specification does not require such a design.  Instead, it requires simply that users can be uniquely identified within the scope of a GMS service's domain.  If a user identity reaches beyond the scope of a GMS service's domain (such as an X.500 distinguished name \citep{std:RFC1779}), then it, too, may be referenced by the service.
 
-The list of officially supported identities can be found in the IVOA Single-Sign-On Profile: Authentication Mechanisms \citep{std:SSOAUTH}.
+The list of officially supported authentication protocols can be found in the IVOA Single-Sign-On Profile: Authentication Mechanisms \citep{std:SSOAUTH}.
 
 TBD...
 
@@ -200,7 +200,7 @@ Functionally required:
 \item list<Group> getMemberships()
 \end{itemize}
 
-Group Membership System RESTful API
+Group Membership System RESTful \citep{fielding00} API
 \begin{verbatim}
 GET /gms/groups
 GET /gms/groups/{group}
@@ -246,7 +246,13 @@ If one of the contained groups actually exists at another GMS instance, perhaps 
 
 TBD
 
-\subsection {Convenient extensions to GMS}
+\section {Future considerations}
+
+This document presents a standard way of making the authorization decision, but not for the granting and revoking of access.  However, a number of examples are presented on how granting and revoking can work.  These examples may define a path for standardization if the need arrises.
+
+\appendix
+
+\section{Convenient extensions to GMS}:
 
 Group Management API could be provided:
 \begin{itemize}
@@ -254,11 +260,6 @@ Group Management API could be provided:
 \item Add/remove members
 \end{itemize}
 
-\section {Future considerations}
-
-This document presents a standard way of making the authorization decision, but not for the granting and revoking of access.  However, a number of examples are presented on how granting and revoking can work.  These examples may define a path for standardization if the need arrises.
-
-\appendix
 \section{Changes from Previous Versions}
 
 No previous versions yet.  
