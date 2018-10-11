@@ -12,7 +12,7 @@
 
 % \previousversion[????URL????]{????Funny Label????}
 \previousversion{This is the first public release}
-       
+
 
 \begin{document}
 \begin{abstract}
@@ -43,7 +43,7 @@ infrastructure that enable VO applications.
 
 \section{Introduction}
 
-Through standard IVOA protocols, many astronomy data centres and institutes offer users access to datasets (SIA \citep{std:SIAP}, Datalink \citep{std:Datalink}, etc), metadata (TAP \citep{std:TAP}) and storage (VOSpace \citep{std:VOSpace}).  In some cases this information is proprietary--it is only allowed to be accessed by certain individuals.  Due to the wide variety and inherently institute-specific set of rules that may define how the information is proprietary, it is beneficial to the owners and maintainers of the rules to have a standard way of describing who has access to what resources.  Additionally, the rules describing resource access may be determined by an entity external to the holder of these resources.  To these ends, this document sets out a standard, programatic, and interoperable method of determining whether a given user is allowed to access a given resource.
+Through standard IVOA protocols, many astronomy data centres and institutes offer users access to datasets (SODA \citep{std:SODA}, Datalink \citep{std:Datalink}, etc), metadata (TAP \citep{std:TAP}) and storage (VOSpace \citep{std:VOSpace}).  In some cases this information is proprietary--it is only allowed to be accessed by certain individuals.  Due to the wide variety and inherently institute-specific set of rules that may define how the information is proprietary, it is beneficial to the owners and maintainers of the rules to have a standard way of describing who has access to what resources.  Additionally, the rules describing resource access may be determined by an entity external to the holder of these resources.  To these ends, this document sets out a standard, programatic, and interoperable method of determining whether a given user is allowed to access a given resource.
 
 The ideas presented by GMS enable data centres to do authorization checks in an interoperable fashion.  In the context of authorization, interoperability can viewed on two levels:  interoperability amongst the cooperating services \emph{within} a data centre, and interoperability \emph{between} data centres.  Because of the orthogonal nature of authorization, these levels amount to the same problem.
 
@@ -142,7 +142,7 @@ But if there is a central repository of groups of users, we introduce other prob
 
 Resources must then reference a group by a URI with a location and a name that is unique within that location.  This is called the Group Identifier.
 
-Systems must use the information in the group identifier to query location to determine if the user is a member of the group.  Because the location may be outside of the immediate vicinity of the resource, this query must be performed in a standard and accessible manner and so is defined as a RESTful interface to group membership. 
+Systems must use the information in the group identifier to query location to determine if the user is a member of the group.  Because the location may be outside of the immediate vicinity of the resource, this query must be performed in a standard and accessible manner and so is defined as a RESTful interface to group membership.
 
 \subsection{Group Identifiers}
 
@@ -157,13 +157,13 @@ A Universal Group Identifier is an IVOID (\citep{std:VOID2}) used to uniquely id
 Below is an example group identifier:
 
 \begin{verbatim}
-ivo://authority.example.com/gms?groupName
+ivo://authority.example.com/gms/instance-name?groupName
 \end{verbatim}
 
 To resolve the host GMS service, lookup, in the Registry, the URL for resourceID:
 
 \begin{verbatim}
-ivo://authority.example.com/gms
+ivo://authority.example.com/gms/instance-name
 \end{verbatim}
 
 This may result in (for example):
@@ -174,11 +174,11 @@ http://server.example.com/myGMS
 
 This is the URL to the GMS service with information on the group named 'groupName'.
 
-
+TODO: From Marco: add non-normative section explaining how the registry is used to find the group service.
 
 \section{Users}
 
-The concept of users and user identity is core to group authorization.  When the owner of a resource would like to grant access to that resource to an individual, that individual must be referenced in some way.  When a system makes a call to a GMS service to determine if the user trying to access the resource is a member of a group, the GMS service needs to identify that user with the users in various groups.  
+The concept of users and user identity is core to group authorization.  When the owner of a resource would like to grant access to that resource to an individual, that individual must be referenced in some way.  When a system makes a call to a GMS service to determine if the user trying to access the resource is a member of a group, the GMS service needs to identify that user with the users in various groups.
 
 The collection of data centres and astronomy institutes likely have many ways of identifying users.  They could be using external identity providers, they could have a local database of users, or may have a combination of these and other approaches.  Section~\ref(subsection:useridentity) has some recommendations on how to best design a user identity system, but this specification does not require such a design.  Instead, it requires simply that users can be uniquely identified within the scope of a GMS service's domain.  If a user identity reaches beyond the scope of a GMS service's domain (such as an X.500 distinguished name \citep{std:RFC1779}), then it, too, may be referenced by the service.
 
@@ -196,17 +196,25 @@ TBD...
 
 Functionally required:
 \begin{itemize}
-\item boolean isMember(Group)
-\item list<Group> getMemberships()
+\item boolean isMember(Group, User)
+\item list<Group> getMemberships(User)
 \end{itemize}
 
 Group Membership System RESTful \citep{fielding00} API
+
+Mandatory Support:
 \begin{verbatim}
 GET /gms/groups
 GET /gms/groups/{group}
 \end{verbatim}
 
-Note that there is no information about the user or the resource being protected in the GMS API.  This is intentional.
+Optional Parameter Support:
+\begin{verbatim}
+user=<user-principal>
+principal=<principle-type>
+\end{verbatim}
+
+Note that, in the mandatory API, there is no information about the user or the resource being protected in the GMS API.  This is intentional.
 Since it is the system representing the protected resource that is making the GMS call, it already knows the context of that call.  If the ID resource were to be added to the GMS API, we would be unnecessarily coupling the resource with the data within the GMS service and creating an inflexible architecture.
 The user is not a part of the API because the user is determined by identifying the authenticated caller of the service.  It must be the user (or the delegated user) making the API call as explained in \ref{section:gmsandcdp}.
 
@@ -215,7 +223,7 @@ The user is not a part of the API because the user is determined by identifying 
 
 The GMS service follows the recommendations of the IVOA credential delegation protocol \citep{std:CDP} and requires that the calls to the service to be made by the user who initiated the request.  Aside from the architectural benefits of employing this pattern, there are a number of information privacy concerns that are addressed.  User and user group membership information is private and thus should only allowed to be viewed by the users themselves.  So, the calls to GMS must be by the user, or by an authorized representative of the user.
 
-Because it is the systems enforcing authorization on proprietary resources that need to make the calls to GMS, they must acquire the user's delegated credentials in order to make those calls.  
+Because it is the systems enforcing authorization on proprietary resources that need to make the calls to GMS, they must acquire the user's delegated credentials in order to make those calls.
 
 TBD...
 
@@ -262,7 +270,7 @@ Group Management API could be provided:
 
 \section{Changes from Previous Versions}
 
-No previous versions yet.  
+No previous versions yet.
 % these would be subsections "Changes from v. WD-..."
 % Use itemize environments.
 
