@@ -5,19 +5,19 @@
 
 \ivoagroup{Grid and Web Services}
 
-\author{}
-\author{}
+\author{Brian Major}
+\author{Patrick Dowler}
+\author{Marco Molinaro}
 
 \editor{Brian Major}
 
 % \previousversion[????URL????]{????Funny Label????}
 \previousversion{This is the first public release}
 
-
 \begin{document}
 \begin{abstract}
 
-The Group Membership Service (GMS) defines an service-oriented method of determining whether a user is a member of a group.  This information can be used to protect access to proprietary resources: clients can issue a call to GMS when an authorization decision needs to be made.  Proprietary resources can be any number of things such as data or services.  Because a single group can be used to protect multiple resources, GMS enables the creation of groups that represent teams with shared authorization.  GMS offers organizations an interoperable, flexible and scalable way of protecting a hetergenous set of resources.
+The Group Membership Service (GMS) specification describes a service-oriented interface for determining whether a user is a member of a group.  This information can be used to protect access to proprietary resources: clients can issue a call to GMS when an authorization decision needs to be made.  Proprietary resources can be any number of things such as data, metadata or services.  Because a single group can be used to protect multiple resources, GMS enables the creation of groups that represent teams with common authorization rights.  GMS offers organizations an interoperable, flexible and scalable way of protecting a hetergenous set of resources.
 
 \end{abstract}
 
@@ -76,7 +76,11 @@ Proprietary information exists.  For it to be made available in a data centre to
 Fig.~\ref{fig:archdiag} shows the role this document plays within the
 IVOA architecture \citep{note:VOARCH}.
 
+GMS can be used by any software that needs to check, for authorization purposes, whether a user is a member of group.  Because of this general use case, GMS cuts through all of the IVOA and lies squarely in the middle of the SHARING technical resource in the IVOA architecture diagram.
+
 \subsection{Use Cases}
+
+Asside from the main use case of restricting access to proprietary resources, GMS supports a number of other use cases, of both the user and system variety.
 
 \paragraph{Proprietary information} Restricting access to proprietary resources to certain users.
 
@@ -102,11 +106,11 @@ IVOA architecture \citep{note:VOARCH}.
 
 \paragraph{User} An individual identified by authentication.
 
-\paragraph{Group} A set of users who have access to a resource.
+\paragraph{Group} A set of users.
 
-\paragraph{Grant} Giving a user authorization to access to a protected resource.
+\paragraph{Grant} Authorizing access to a protected resource by assigning a group.
 
-\paragraph{Revoke} Taking away from a user access to a protected resource.
+\paragraph{Revoke} Removing access to a protected resource by removing an assigned group.
 
 \paragraph{Owner} A user or group of users who may grant or revoke access to a specific resource.
 
@@ -119,7 +123,7 @@ When looking at a system that has proprietary resources that need to be protecte
 \item When users try to access resources, the granting rules for that resource are evaluated at runtime. This is the \emph{authorization check}.
 \end{enumerate}
 
-With these phases in mind and with the use cases defined, we can state that the goals of authorization is to:
+With these phases in mind and with the use cases defined, we can state that the goals of authorization are to:
 
 \begin{itemize}
 \item To allow for restricted access certain resources: only a certain set of individuals may access certain resources.
@@ -133,11 +137,11 @@ With these phases in mind and with the use cases defined, we can state that the 
 
 Why are groups a good model for authorization?  When a system needs to perform an \emph{authorization check} on a resource, it is trying to determine if the authenticated user is allowed access.  There are a number of options on how this can be accomplished.
 
-A simple approach would be to add the identity of the user to the resource.  However, this is too restrictive as there may be multiple users who are allowed access.  So, we could instead add a list of user identities to the resource being protected.  This becomes a problem when there are two resources that need protecting by the same set of individuals.  This becomes difficult to maintain because a change in access rules (\emph{granting and revoking access}) would mean a change to multiple resources.
+A simple approach would be to add the identity of the user to the resource.  However, this is too restrictive as there may be multiple users who are allowed access.  So, we could instead add a list of user identities to the resource being protected.  It becomes a problem when there are two resources that need protecting by the same set of individuals.  This becomes difficult to maintain because a change in access rules (\emph{granting and revoking access}) would mean a change to multiple resources.
 
-So, it becomes clear that this list of users needs to be detached and centralized so that it can be referenced and shared by multiple resources.  To do so, the list must become a single entity than can be referenced by a name.  And so, we must now have a named group of users.
+So, it becomes clear that this list of users needs to be decoupled from the resource so that it can be referenced and shared by multiple resources.  To do so, the list must become a single entity than can be referenced by a name.  And so, we must now have a named group of users.
 
-But if there is a central repository of groups of users, we introduce other problems:  a single point of failure, and the inability to partition groups of users.  Thus, the \emph{location} of the group must accompany the group itself so that it is possible to have multiple collections of groups of users.
+A central repository of groups of users would introduce other problems:  a single point of failure, and the inability to partition groups of users.  Thus, the \emph{location} of the group must accompany the group reference so that it is possible to have multiple collections of groups of users and multiple assiciated GMS services.
 
 Resources must then reference a group by a URI with a location and a name that is unique within that location.  This is called the Group Identifier.
 
@@ -148,58 +152,50 @@ Systems must use the information in the group identifier to query location to de
 A Universal Group Identifier is an IVOID (\citep{std:VOID2}) used to uniquely identify groups.  For GMS, there are three important components to the group ID:
 
 \begin{enumerate}
-\item \emph{The authority} This identifies the location or instance of the group membership service.
-\item \emph{The path} Always 'gms', indicating that it is a group URI.
-\item \emph{The query} Identifies the group within the authority.  The name of the group.
+\item \emph{The authority}: This identifies the location or instance of the group membership service.
+\item \emph{The path}: Always starting with '/gms', indicating that it is a group URI, with '/instance-name' which is the name of the particular GMS instance within the authority.
+\item \emph{The query}: Identifies the group within the authority and instance.  The name of the group.
 \end{enumerate}
 
 Below is an example group identifier:
 
 \begin{verbatim}
-ivo://authority.example.com/gms/instance-name?groupName
+ivo://authority.example.com/gms/instance1?groupName
 \end{verbatim}
 
-To resolve the host GMS service, lookup, in the Registry, the URL for resourceID:
+To resolve the host GMS service URL, one would issue a query to RegTAP (\citep{std:RegTAP}) to find the accessURL in the interface for the authority:
 
 \begin{verbatim}
-ivo://authority.example.com/gms/instance-name
+SELECT access_url, security_method_id
+FROM rr.interface
+NATURAL JOIN rr.capability
+NATURAL JOIN rr.resource
+WHERE
+  ivoid = 'ivo://authority.example.com/gms/instance1' AND
+  standard_id = 'ivo://ivoa.net/std/gms#search-1.0'
 \end{verbatim}
 
-This may result in (for example):
+This would result in an access URL capable of supporting a GMS search on the group 'groupName'.  For example:
 
 \begin{verbatim}
-http://server.example.com/myGMS
+http://server.example.com/myGMSImpl/search
 \end{verbatim}
 
-This is the URL to the GMS service with information on the group named 'groupName'.
+\section{GMS Search API}
 
-TODO: From Marco: add non-normative section explaining how the registry is used to find the group service.
+The Group Membership Service (GMS) declares a RESTful API \citep{fielding00} that allows for the determination of whether a user is a member of a group.  This is the GMS search capability and is identified by the following standardID:
 
-\section{Users}
+\begin{verbatim}
+ivo://ivoa.net/std/gms#search-1.0
+\end{verbatim}
 
-The concept of users and user identity is core to group authorization.  When the owner of a resource would like to grant access to that resource to an individual, that individual must be referenced in some way.  When a system makes a call to a GMS service to determine if the user trying to access the resource is a member of a group, the GMS service needs to identify that user with the users in various groups.
-
-The collection of data centres and astronomy institutes likely have many ways of identifying users.  They could be using external identity providers, they could have a local database of users, or may have a combination of these and other approaches.  Section~\ref(subsection:useridentity) has some recommendations on how to best design a user identity system, but this specification does not require such a design.  Instead, it requires simply that users can be uniquely identified within the scope of a GMS service's domain.  If a user identity reaches beyond the scope of a GMS service's domain (such as an X.500 distinguished name \citep{std:RFC1779}), then it, too, may be referenced by the service.
-
-The list of officially supported authentication protocols can be found in the IVOA Single-Sign-On Profile: Authentication Mechanisms \citep{std:SSOAUTH}.
-
-TBD...
-
-\section{The group management service (GMS)}
-
-The Group Membership Service (GMS) is a RESTful API that allows for the determination of whether a user is a member of a group.
-
-TBD...
-
-\subsection{API definition}
-
-Functionally required:
+Within this capability, there are two functions:
 \begin{itemize}
-\item boolean isMember(Group, User)
-\item list<Group> getMemberships(User)
+\item \emph{boolean isMember(Group, User)}: Return true if User is a member of Group.
+\item \emph{list<Group> getMemberships(User)}: Return the list of Groups of which User is a member.
 \end{itemize}
 
-Group Membership System RESTful \citep{fielding00} API
+Group Membership System RESTful API
 
 Mandatory Support:
 \begin{verbatim}
@@ -226,6 +222,17 @@ Because it is the systems enforcing authorization on proprietary resources that 
 
 TBD...
 
+\section{Users}
+
+The concept of users and user identity is core to group authorization.  When a system makes a call to a GMS service to determine if the user trying to access the resource is a member of a group, the GMS service needs to identify that user with the users in various groups.
+
+The collection of data centres and astronomy institutes likely have many ways of identifying users.  They could be using external identity providers, they could have a local database of users, or may have a combination of these and other approaches.  This specification does not require such a design.  Instead, it requires simply that users can be uniquely identified within the scope of a GMS service's domain.  If a user identity reaches beyond the scope of a GMS service's domain (such as an X.500 distinguished name \citep{std:RFC1779}), then it, too, may be referenced by the service.
+
+The list of officially supported authentication protocols can be found in the IVOA Single-Sign-On Profile: Authentication Mechanisms \citep{std:SSOAUTH}.  However, these protocols are
+
+\subsection{User Identity}
+
+TBD...
 
 \section {Implementation}
 
