@@ -7,6 +7,8 @@
 
 \author{Brian Major}
 \author{Patrick Dowler}
+\author{Giuliano Taffoni}
+\author{Adrian Damian}
 \author{Marco Molinaro}
 
 \editor{Brian Major}
@@ -17,7 +19,7 @@
 \begin{document}
 \begin{abstract}
 
-The Group Membership Service (GMS) specification describes a service-oriented interface for determining whether a user is a member of a group.  This information can be used to protect access to proprietary resources: clients can issue a call to GMS when an authorization decision needs to be made.  Proprietary resources can be any number of things such as data, metadata or services.  Because a single group can be used to protect multiple resources, GMS enables the creation of groups that represent teams with common authorization rights.  GMS offers organizations an interoperable, flexible and scalable way of protecting a hetergenous set of resources.
+The Group Membership Service (GMS) specification describes a REST interface for determining whether a user is a member of a group.  This information can be used to protect access to proprietary resources: clients can issue a call to GMS when an authorization decision needs to be made.  Proprietary resources can be any number of things such as data, metadata or services.  Because a single group can be used to protect multiple resources, GMS enables the creation of groups that represent teams with common authorization rights.  GMS offers organizations an interoperable, flexible and scalable way of protecting a hetergenous set of resources.
 
 \end{abstract}
 
@@ -42,7 +44,7 @@ infrastructure that enable VO applications.
 
 \section{Introduction}
 
-Through standard IVOA protocols, many astronomy data centres and institutes offer users access to datasets (SODA \citep{std:SODA}, Datalink \citep{std:Datalink}, etc), metadata (TAP \citep{std:TAP}) and storage (VOSpace \citep{std:VOSpace}).  In some cases this information is proprietary--it is only allowed to be accessed by certain individuals.  Due to the wide variety and inherently institute-specific set of rules that may define how the information is proprietary, it is beneficial to the owners and maintainers of the rules to have a standard way of describing who has access to what resources.  Additionally, the rules describing resource access may be determined by an entity external to the holder of these resources.  To these ends, this document sets out a standard, programatic, and interoperable method of determining whether a given user is allowed to access a given resource.
+Through standard IVOA protocols, many astronomy data centres and institutes offer users access to datasets (DALI \citep{std:DALI}, Datalink \citep{std:Datalink}, etc), metadata (TAP \citep{std:TAP}) and storage (VOSpace \citep{std:VOSpace}).  In some cases this information is proprietary--it is only allowed to be accessed by certain individuals.  Due to the wide variety and inherently institute-specific set of rules that may define how the information is proprietary, it is beneficial to the owners and maintainers of the rules to have a standard way of describing who has access to what resources.  Additionally, the rules describing resource access may be determined by an entity external to the holder of these resources.  To these ends, this document sets out a standard, programatic, and interoperable method of determining whether a given user is allowed to access a given resource.
 
 The ideas presented by GMS enable data centres to do authorization checks in an interoperable fashion.  In the context of authorization, interoperability can viewed on two levels:  interoperability amongst the cooperating services \emph{within} a data centre, and interoperability \emph{between} data centres.  Because of the orthogonal nature of authorization, these levels amount to the same problem.
 
@@ -149,12 +151,15 @@ Systems must use the information in the group identifier to query location to de
 
 \subsection{Group Identifiers}
 
-A Universal Group Identifier is an IVOID (\citep{std:VOID2}) used to uniquely identify groups.  For GMS, there are three important components to the group ID:
+A Group Identifier is an IVOID (\citep{std:VOID2}) used to uniquely and universally identify groups.  They are attached to proprietary resources as grants.  When it is time to determine group membership, the Group Identifier is resolved to a particular instance of a GMS service and a check for membership call is made.
+
+For GMS, there are four important components to the Group Identifier:
 
 \begin{enumerate}
-\item \emph{The authority}: This identifies the location or instance of the group membership service.
-\item \emph{The path}: Always starting with '/gms', indicating that it is a group URI, with '/instance-name' which is the name of the particular GMS instance within the authority.
-\item \emph{The query}: Identifies the group within the authority and instance.  The name of the group.
+\item The \emph{scheme}: Always \emph{ivo} indicating it is an interoperable IVOA ID.
+\item The \emph{authority}: This identifies the location or instance of the group membership service.
+\item The \emph{path}: Always starting with '/gms', indicating that it is a group URI, with '/instance-name' which is the name of the particular GMS instance within the authority.
+\item The \emph{query}: Identifies the group within the authority and instance.  The name of the group.
 \end{enumerate}
 
 Below is an example group identifier:
@@ -163,7 +168,7 @@ Below is an example group identifier:
 ivo://authority.example.com/gms/instance1?groupName
 \end{verbatim}
 
-To resolve the host GMS service URL, one would issue a query to RegTAP (\citep{std:RegTAP}) to find the accessURL in the interface for the authority:
+To resolve the host GMS service URL, one would issue a query to RegTAP (\citep{std:RegTAP}) to find the accessURL in the interface for the authority.  The following query will return a row for each \xmlel{access\_url} and \xmlel{security\_method\_id} combination.  The ivoid value is calculated by removing the query string from the group identifier.  Since we are looking to perform a is member call, we ask for the GMS search capability, identified by the GMS search standardID (see section below).
 
 \begin{verbatim}
 SELECT access_url, security_method_id
@@ -183,56 +188,51 @@ http://server.example.com/myGMSImpl/search
 
 \section{GMS Search API}
 
-The Group Membership Service (GMS) declares a RESTful API \citep{fielding00} that allows for the determination of whether a user is a member of a group.  This is the GMS search capability and is identified by the following standardID:
+The Group Membership Service defines a RESTful API \citep{fielding00} that allows for the determination of whether a user is a member of a group.  This is the GMS search capability and is identified by the following standardID:
 
 \begin{verbatim}
 ivo://ivoa.net/std/gms#search-1.0
 \end{verbatim}
 
 Within this capability, there are two functions:
+
 \begin{itemize}
 \item \emph{boolean isMember(Group, User)}: Return true if User is a member of Group.
 \item \emph{list<Group> getMemberships(User)}: Return the list of Groups of which User is a member.
 \end{itemize}
 
-Group Membership System RESTful API
+The resulting REST API for these functions is as follows:
 
-Mandatory Support:
 \begin{verbatim}
-GET /gms/groups
-GET /gms/groups/{group}
+GET /search/{group}
+GET /search
 \end{verbatim}
 
-Optional Parameter Support:
+Where \emph{search} represents the \xmlel{access\_url} from the RegTAP call and \emph{\{group\}} is the groupName part of a Group Identifier.
+
+Two (optional) parameters can be supplied to identify the user:
+
 \begin{verbatim}
 user=<user-principal>
 principal=<principle-type>
 \end{verbatim}
 
-Note that, in the mandatory API, there is no information about the user or the resource being protected in the GMS API.  This is intentional.
-Since it is the system representing the protected resource that is making the GMS call, it already knows the context of that call.  If the ID resource were to be added to the GMS API, we would be unnecessarily coupling the resource with the data within the GMS service and creating an inflexible architecture.
-The user is not a part of the API because the user is determined by identifying the authenticated caller of the service.  It must be the user (or the delegated user) making the API call as explained in \ref{section:gmsandcdp}.
+An HTTP GET to \xmlel{/search/\{group\}} shall respond with HTTP 200 (OK) if the user is a member of the \xmlel{\{group\}}.  If the user is not a member of the group, or if the user is not recognized, or if the group is not recognized, the service shall respond with HTTP 403 (Forbidden).
 
-\section{GMS and Credential Delegation}
-\label{section:gmsandcdp}
+An HTTP GET to \xmlel{/search} shall return HTTP 200 (OK) with a list of the groupNames in which the user is a member in the response body.  The response must have a Content-Type of \emph {text/plain} and each group must be separated by a new line character.  If the user is not a member of any groups, or if the user is not recognized, the response body must be empty.
 
-The GMS service follows the recommendations of the IVOA credential delegation protocol \citep{std:CDP} and requires that the calls to the service to be made by the user who initiated the request.  Aside from the architectural benefits of employing this pattern, there are a number of information privacy concerns that are addressed.  User and user group membership information is private and thus should only allowed to be viewed by the users themselves.  So, the calls to GMS must be by the user, or by an authorized representative of the user.
+The \emph{user} and \emph{pricipal} parameters are used to identify the user who is the subject of the membership question.  The \emph{user} field is the username of the user in context of the \emph{principal} value.  For example, when the \emph{principal} field is set to 'X.509', the \emph{user} field will contain the user's distinguished name.  Or, if the \emph{principal} field is set to 'OpenID', the \emph{user} field would contain the user's OpenID token.  For the full list of supported principal types please refer to the User Identification standard (\textbf{Note for authors}: This is to be written).  If the GMS service does not recognize the value of the \emph{principal} parameter, the service shall respond with HTTP 501 (Not Implemented).  If the \emph{pricipal} parameter is recognized but the user cannot be identified, the service shall respond with a HTTP 403 (Forbidden) (in a call to  \xmlel{/search}) or with an empty list of groups (in a call to  \xmlel{/search/\{group\}}).
 
-Because it is the systems enforcing authorization on proprietary resources that need to make the calls to GMS, they must acquire the user's delegated credentials in order to make those calls.
+If the \emph{user} and \emph{principal} parameters are not supplied, it is assumed that the user who is the subject of the membership question is the user who is making the REST call.  This pattern will be in use when the call is being made by a service that supports and implements the IVOA Credential Delegation Protocol \citep{std:CDP}.  If the user cannot be identified from the call because they have not authenticated, the service must respond with HTTP 400 (Bad Request).  The other HTTP responses shall be the same as described above where the user was identified by the \emph{user} and \emph{principal} parameters.
 
-TBD...
+If one of \emph{user} or \emph{principal} are supplied, then they both must be supplied.  If only one is supplied then the service must respond with HTTP 400 (Bad Request).
 
-\section{Users}
+(\textbf{Note for authors}: It could be that the \emph{user} and \emph{principal} parameters are turned into one parameter that is in URI format and contains enough information to identify the user across different authentication mechanisms.)
 
-The concept of users and user identity is core to group authorization.  When a system makes a call to a GMS service to determine if the user trying to access the resource is a member of a group, the GMS service needs to identify that user with the users in various groups.
+\subsection {Search Examples}
 
-The collection of data centres and astronomy institutes likely have many ways of identifying users.  They could be using external identity providers, they could have a local database of users, or may have a combination of these and other approaches.  This specification does not require such a design.  Instead, it requires simply that users can be uniquely identified within the scope of a GMS service's domain.  If a user identity reaches beyond the scope of a GMS service's domain (such as an X.500 distinguished name \citep{std:RFC1779}), then it, too, may be referenced by the service.
+A user is
 
-The list of officially supported authentication protocols can be found in the IVOA Single-Sign-On Profile: Authentication Mechanisms \citep{std:SSOAUTH}.  However, these protocols are
-
-\subsection{User Identity}
-
-TBD...
 
 \section {Implementation}
 
@@ -245,34 +245,26 @@ Possible ways to implement GMS
 \end{itemize}
 
 \subsection{User Identity}
-\label{subsection:useridentity}
+
+The concept of users and user identity is core to group authorization.  When a system makes a call to a GMS service to determine if the user trying to access the resource is a member of a group, the GMS service needs to identify that user with the users in various groups.
+
+-The collection of data centres and astronomy institutes likely have many ways of identifying users.  They could be using external identity providers, they could have a local database of users, or may have a combination of these and other approaches.  This specification does not require such a design.  Instead, it requires simply that users can be uniquely identified within the scope of a GMS service's domain.  If a user identity reaches beyond the scope of a GMS service's domain (such as an X.500 distinguished name \citep{std:RFC1779}), then it, too, may be referenced by the service.
+
+\section{Information Privacy}
+
+User and group membership information may be private and thus may only be a...
+
+The GMS service recognizes recommendations of the IVOA credential delegation protocol \citep{std:CDP} and supports calls to the service to be made by the user who initiated the request.  This is the reason that the \emph{user} and \emph{principal} parameters are optional in the API.  Aside from the architectural benefits of employing this pattern, there are a number of information privacy concerns that are addressed.  User and user group membership information may be private and only allowed to be viewed by the users themselves.
 
 TBD - describe how to support multiple identities, how to design a system where no locally stored users are needed.
 
 \subsection{Groups of Groups}
 
-It may be functionally attractive to support groups within groups.  If this is implemented, then the service must ensure that this representation is reflected by the service API.  For example, if an isMember(g) call is made, and the group 'g' is a group within another group in which the user is a member, then the service must return true.  Essentially, the service must denormalize (at runtime) the containment of groups within groups.
+It may be functionally attractive to support groups within groups.  If this is implemented, then the service must ensure that this representation is reflected by the service API.  For example, if an isMember(g) call is made, and the group 'g' is a group within another group in which the user is a member, then the service must return true.  Essentially, the service must denormalize the containment of groups within groups.
 
-If one of the contained groups actually exists at another GMS instance, perhaps outside of the organization, then the service must transitively query that service to determine group membership.  This of course requires that the user's delegated credentials be available in the GMS service itself and within any other GMS services it may call.  Please refer to the note on the IVOA inter-service calling pattern for more detail \citep{note:IVOSvcPatterns} (not yet written!)
-
-
-\subsection {Examples}
-
-TBD
-
-\section {Future considerations}
-
-This document presents a standard way of making the authorization decision, but not for the granting and revoking of access.  However, a number of examples are presented on how granting and revoking can work.  These examples may define a path for standardization if the need arrises.
+If one of the contained groups actually exists at another GMS instance, perhaps outside of the organization, then the service must transitively query that service to determine group membership.
 
 \appendix
-
-\section{Convenient extensions to GMS}:
-
-Group Management API could be provided:
-\begin{itemize}
-\item create/modify/delete groups
-\item Add/remove members
-\end{itemize}
 
 \section{Changes from Previous Versions}
 

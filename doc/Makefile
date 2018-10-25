@@ -7,7 +7,7 @@ DOCNAME = GMS
 DOCVERSION = 1.0
 
 # Publication date, ISO format; update manually for "releases"
-DOCDATE = 20180518
+DOCDATE = 20181025
 
 # What is it you're writing: NOTE, WD, PR, or REC
 DOCTYPE = WD
