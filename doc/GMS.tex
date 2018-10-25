@@ -231,8 +231,51 @@ If one of \emph{user} or \emph{principal} are supplied, then they both must be s
 
 \subsection {Search Examples}
 
-A user is
+\paragraph{Example 1 - Group access to a VOSpace Node}
 
+A user is trying to download a VOSpace file that has the group-read property set to
+
+\begin{verbatim}
+ivo://authority.example.com/gms/instance1?my-collaboration
+\end{verbatim}
+
+This resolves (though a RegTAP query for the search API) to host
+
+\begin{verbatim}
+http://server.example.com/groupService/search
+\end{verbatim}
+
+To authorize the user, the VOSpace service queryies the GMS search service using the user's delegated credentials
+
+\begin{verbatim}
+HTTP GET to http://server.example.com/gmsService/search/my-collaboration
+\end{verbatim}
+
+The GMS service identifies the user, consults it's groups memberhip information, and returns a response code of 200 when confirming the user is a member of group 'my-collaboration'.
+
+\paragraph{Example 2 - Group access to table data}
+
+A user issues an ADQL query to table with row-level authorzation in a TAP service.  A read-group column defines which group is allowed to read that row.  The first row that is encountered with a non-null read-group has value:
+
+\begin{verbatim}
+ivo://authority.example.com/gms/instance1?my-other-collaboration
+\end{verbatim}
+
+Not wanting to make a REST call for each row that needs to be consulted, the TAP service asks for all groups for the user on the first group protected row that is encountered.  The service does not have the user's delegated credentials, so passes the user information in the search call.
+
+\begin{verbatim}
+HTTP GET to http://server.example.com/gmsService/search?user=bmajor&pricipal=username
+\end{verbatim}
+
+The GMS service returns HTTP 200 and all the groups in which user 'bmajor' is a member:
+
+\begin{verbatim}
+my-collaboration
+my-other-collaboration
+my-final-collaboration
+\end{verbatim}
+
+The TAP services caches this group membership information for the lifetime of the request so that it can be used if necessary when checking other rows.  If a read-group entry with a different IVOID is encountered, the TAP service must call that GMS service too and add the list of groups to its cache.
 
 \section {Implementation}
 
@@ -252,15 +295,13 @@ The concept of users and user identity is core to group authorization.  When a s
 
 \section{Information Privacy}
 
-User and group membership information may be private and thus may only be a...
+User and group membership information may be private, so who is allowed to make GMS search calls must be considered when implementing a GMS service.  A GMS implementation may insist that GMS search calls must be made by a certain privileged account only.  This is a reasonable approach when the service is only used with a single organization, but would require the distribution of those privleged credentials to any external sites wishing to use it.
 
-The GMS service recognizes recommendations of the IVOA credential delegation protocol \citep{std:CDP} and supports calls to the service to be made by the user who initiated the request.  This is the reason that the \emph{user} and \emph{principal} parameters are optional in the API.  Aside from the architectural benefits of employing this pattern, there are a number of information privacy concerns that are addressed.  User and user group membership information may be private and only allowed to be viewed by the users themselves.
-
-TBD - describe how to support multiple identities, how to design a system where no locally stored users are needed.
+Alternatively, a GMS service could have a policy where only the user who is the subject of the membership assertions is allowed to make the GMS search calls.  This approach lends itself well to external interoperability because there need not be any sharing of credentials or trust arrangements between sites--it is always only the user who makes the service calls, even when they are transitive.  This is the approach recommended in the  IVOA credential delegation protocol \citep{std:CDP}.  So, aside from the architectural benefits of employing this pattern, there are some  information privacy concerns that are addressed.
 
 \subsection{Groups of Groups}
 
-It may be functionally attractive to support groups within groups.  If this is implemented, then the service must ensure that this representation is reflected by the service API.  For example, if an isMember(g) call is made, and the group 'g' is a group within another group in which the user is a member, then the service must return true.  Essentially, the service must denormalize the containment of groups within groups.
+It may be functionally attractive to support groups within groups.  If this is implemented, then the service must ensure that this representation is reflected by the service API.  For example, if an isMember(g) call is made, and the group 'g' is a group within another group in which the user is a member, then the service must return true.  The fact that the service supports groups within groups is not exposed through the search API, but the API does not prohibit such an implementation.
 
 If one of the contained groups actually exists at another GMS instance, perhaps outside of the organization, then the service must transitively query that service to determine group membership.
 
