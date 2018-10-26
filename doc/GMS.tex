@@ -23,9 +23,10 @@ The Group Membership Service (GMS) specification describes a REST interface for 
 
 \end{abstract}
 
-\section*{Acknowledgments}
-
-???? Or remove the section header ????
+% \section*{Acknowledgments}
+%
+% ???? Or remove the section header ????
+%
 
 \section*{Conformance-related definitions}
 
@@ -137,6 +138,8 @@ With these phases in mind and with the use cases defined, we can state that the 
 
 \section{Groups}
 
+\subsection{Why Groups?}
+
 Why are groups a good model for authorization?  When a system needs to perform an \emph{authorization check} on a resource, it is trying to determine if the authenticated user is allowed access.  There are a number of options on how this can be accomplished.
 
 A simple approach would be to add the identity of the user to the resource.  However, this is too restrictive as there may be multiple users who are allowed access.  So, we could instead add a list of user identities to the resource being protected.  It becomes a problem when there are two resources that need protecting by the same set of individuals.  This becomes difficult to maintain because a change in access rules (\emph{granting and revoking access}) would mean a change to multiple resources.
@@ -187,6 +190,8 @@ http://server.example.com/myGMSImpl/search
 \end{verbatim}
 
 \section{GMS Search API}
+
+\subsection{API Definition}
 
 The Group Membership Service defines a RESTful API \citep{fielding00} that allows for the determination of whether a user is a member of a group.  This is the GMS search capability and is identified by the following standardID:
 
@@ -279,7 +284,7 @@ The TAP services caches this group membership information for the lifetime of th
 
 \section {Implementation}
 
-Possible ways to implement GMS
+\subsection {Implementation Options}
 
 \begin{itemize}
 \item Via Grouper (groups in MySQL, users in LDAP)
@@ -291,9 +296,11 @@ Possible ways to implement GMS
 
 The concept of users and user identity is core to group authorization.  When a system makes a call to a GMS service to determine if the user trying to access the resource is a member of a group, the GMS service needs to identify that user with the users in various groups.
 
--The collection of data centres and astronomy institutes likely have many ways of identifying users.  They could be using external identity providers, they could have a local database of users, or may have a combination of these and other approaches.  This specification does not require such a design.  Instead, it requires simply that users can be uniquely identified within the scope of a GMS service's domain.  If a user identity reaches beyond the scope of a GMS service's domain (such as an X.500 distinguished name \citep{std:RFC1779}), then it, too, may be referenced by the service.
+(Author note: add reference or table of user identity types.)
 
-\section{Information Privacy}
+The collection of data centres and astronomy institutes likely have many ways of identifying users.  They could be using external identity providers, they could have a local database of users, or may have a combination of these and other approaches.  This specification does not require such a design.  Instead, it requires simply that users can be uniquely identified within the scope of a GMS service's domain.  If a user identity reaches beyond the scope of a GMS service's domain (such as an X.500 distinguished name \citep{std:RFC1779}), then it, too, may be referenced by the service.
+
+\subsection{Information Privacy}
 
 User and group membership information may be private, so who is allowed to make GMS search calls must be considered when implementing a GMS service.  A GMS implementation may insist that GMS search calls must be made by a certain privileged account only.  This is a reasonable approach when the service is only used with a single organization, but would require the distribution of those privleged credentials to any external sites wishing to use it.
 
@@ -313,8 +320,6 @@ No previous versions yet.
 % these would be subsections "Changes from v. WD-..."
 % Use itemize environments.
 
-
 \bibliography{ivoatex/ivoabib,ivoatex/docrepo}
-
 
 \end{document}
