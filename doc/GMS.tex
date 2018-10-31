@@ -20,7 +20,7 @@
 \begin{document}
 \begin{abstract}
 
-The Group Membership Service (GMS) specification describes a REST interface for determining whether a user is a member of a group.  This information can be used to protect access to proprietary resources: clients can issue a call to GMS when an authorization decision needs to be made.  Proprietary resources can be any number of things such as data, metadata or services.  Because a single group can be used to protect multiple resources, GMS enables the creation of groups that represent teams with common authorization rights.  GMS offers organizations an interoperable, flexible and scalable way of protecting a hetergenous set of resources.
+The Group Membership Service (GMS) specification describes a REST interface for determining whether a user is a member of a group.  This information can be used to protect access to proprietary resources: clients can issue a call to GMS when an authorization decision needs to be made.  Proprietary resources can be any number of things such as data, metadata or services.  Because a single group can be used to protect multiple resources, GMS enables the creation of groups that represent teams with common authorization rights.  GMS offers organizations an interoperable, flexible and scalable way of protecting a heterogeneous set of resources.
 
 \end{abstract}
 
@@ -46,7 +46,7 @@ infrastructure that enable VO applications.
 
 \section{Introduction}
 
-Through standard IVOA protocols, many astronomy data centres and institutes offer users access to datasets (DALI \citep{std:DALI}, Datalink \citep{std:Datalink}, etc), metadata (TAP \citep{std:TAP}) and storage (VOSpace \citep{std:VOSpace}).  In some cases this information is proprietary--it is only allowed to be accessed by certain individuals.  Due to the wide variety and inherently institute-specific set of rules that may define how the information is proprietary, it is beneficial to the owners and maintainers of the rules to have a standard way of describing who has access to what resources.  Additionally, the rules describing resource access may be determined by an entity external to the holder of these resources.  To these ends, this document sets out a standard, programatic, and interoperable method of determining whether a given user is allowed to access a given resource.
+Through standard IVOA protocols, many astronomy data centres and institutes offer users access to datasets (DALI \citep{std:DALI}, Datalink \citep{std:Datalink}, etc), metadata (TAP \citep{std:TAP}) and storage (VOSpace \citep{std:VOSpace}).  In some cases this information is proprietary--it is only allowed to be accessed by certain individuals.  Due to the wide variety and inherently institute-specific set of rules that may define how the information is proprietary, it is beneficial to the owners and maintainers of the rules to have a standard way of describing who has access to what resources.  Additionally, the rules describing resource access may be determined by an entity external to the holder of these resources.  To these ends, this document sets out a standard, programmatic, and interoperable method of determining whether a given user is allowed to access a given resource.
 
 The ideas presented by GMS enable data centres to do authorization checks in an interoperable fashion.  In the context of authorization, interoperability can viewed on two levels:  interoperability amongst the cooperating services \emph{within} a data centre, and interoperability \emph{between} data centres.  Because of the orthogonal nature of authorization, these levels amount to the same problem.
 
@@ -147,7 +147,7 @@ A simple approach would be to add the identity of the user to the resource.  How
 
 So, it becomes clear that this list of users needs to be decoupled from the resource so that it can be referenced and shared by multiple resources.  To do so, the list must become a single entity than can be referenced by a name.  And so, we must now have a named group of users.
 
-A central repository of groups of users would introduce other problems:  a single point of failure, and the inability to partition groups of users.  Thus, the \emph{location} of the group must accompany the group reference so that it is possible to have multiple collections of groups of users and multiple assiciated GMS services.
+A central repository of groups of users would introduce other problems:  a single point of failure, and the inability to partition groups of users.  Thus, the \emph{location} of the group must accompany the group reference so that it is possible to have multiple collections of groups of users and multiple associated GMS services.
 
 Resources must then reference a group by a URI with a location and a name that is unique within that location.  This is called the Group Identifier.
 
@@ -227,7 +227,7 @@ An HTTP GET to \xmlel{/search/\{group\}} shall respond with HTTP 200 (OK) if the
 
 An HTTP GET to \xmlel{/search} shall return HTTP 200 (OK) with a list of the groupNames in which the user is a member in the response body.  The response must have a Content-Type of \emph {text/plain} and each group must be separated by a new line character.  If the user is not a member of any groups, or if the user is not recognized, the response body must be empty.
 
-The \emph{user} and \emph{pricipal} parameters are used to identify the user who is the subject of the membership question.  The \emph{user} field is the username of the user in context of the \emph{principal} value.  For example, when the \emph{principal} field is set to 'X.509', the \emph{user} field will contain the user's distinguished name.  Or, if the \emph{principal} field is set to 'OpenID', the \emph{user} field would contain the user's OpenID token.  For the full list of supported principal types please refer to the User Identification standard (\textbf{Note for authors}: This is to be written).  If the GMS service does not recognize the value of the \emph{principal} parameter, the service shall respond with HTTP 501 (Not Implemented).  If the \emph{pricipal} parameter is recognized but the user cannot be identified, the service shall respond with a HTTP 403 (Forbidden) (in a call to  \xmlel{/search}) or with an empty list of groups (in a call to  \xmlel{/search/\{group\}}).
+The \emph{user} and \emph{principal} parameters are used to identify the user who is the subject of the membership question.  The \emph{user} field is the username of the user in context of the \emph{principal} value.  For example, when the \emph{principal} field is set to 'X.509', the \emph{user} field will contain the user's distinguished name.  Or, if the \emph{principal} field is set to 'OpenID', the \emph{user} field would contain the user's OpenID token.  For the full list of supported principal types please refer to the User Identification standard (\textbf{Note for authors}: This is to be written).  If the GMS service does not recognize the value of the \emph{principal} parameter, the service shall respond with HTTP 501 (Not Implemented).  If the \emph{principal} parameter is recognized but the user cannot be identified, the service shall respond with a HTTP 403 (Forbidden) (in a call to  \xmlel{/search}) or with an empty list of groups (in a call to  \xmlel{/search/\{group\}}).
 
 If the \emph{user} and \emph{principal} parameters are not supplied, it is assumed that the user who is the subject of the membership question is the user who is making the REST call.  This pattern will be in use when the call is being made by a service that supports and implements the IVOA Credential Delegation Protocol \citep{std:CDP}.  If the user cannot be identified from the call because they have not authenticated, the service must respond with HTTP 400 (Bad Request).  The other HTTP responses shall be the same as described above where the user was identified by the \emph{user} and \emph{principal} parameters.
 
@@ -251,7 +251,7 @@ This resolves (though a RegTAP query for the search API) to host
 http://server.example.com/groupService/search
 \end{verbatim}
 
-To authorize the user, the VOSpace service queryies the GMS search service using the user's delegated credentials
+To authorize the user, the VOSpace service queries the GMS search service using the user's delegated credentials
 
 \begin{verbatim}
 HTTP GET to http://server.example.com/gmsService/search/my-collaboration
@@ -261,7 +261,7 @@ The GMS service identifies the user, consults it's groups memberhip information,
 
 \paragraph{Example 2 - Group access to table data}
 
-A user issues an ADQL query to table with row-level authorzation in a TAP service.  A read-group column defines which group is allowed to read that row.  The first row that is encountered with a non-null read-group has value:
+A user issues an ADQL query to table with row-level authorization in a TAP service.  A read-group column defines which group is allowed to read that row.  The first row that is encountered with a non-null read-group has value:
 
 \begin{verbatim}
 ivo://authority.example.com/gms/instance1?my-other-collaboration
@@ -270,10 +270,10 @@ ivo://authority.example.com/gms/instance1?my-other-collaboration
 Not wanting to make a REST call for each row that needs to be consulted, the TAP service asks for all groups for the user on the first group protected row that is encountered.  The service does not have the user's delegated credentials, so passes the user information in the search call.
 
 \begin{verbatim}
-HTTP GET to http://server.example.com/gmsService/search?user=bmajor&pricipal=username
+HTTP GET to http://server.example.com/gmsService/search?user=myusername&principal=username
 \end{verbatim}
 
-The GMS service returns HTTP 200 and all the groups in which user 'bmajor' is a member:
+The GMS service returns HTTP 200 and all the groups in which user 'myusername' is a member:
 
 \begin{verbatim}
 my-collaboration
@@ -303,9 +303,9 @@ The collection of data centres and astronomy institutes likely have many ways of
 
 \subsection{Information Privacy}
 
-User and group membership information may be private, so who is allowed to make GMS search calls must be considered when implementing a GMS service.  A GMS implementation may insist that GMS search calls must be made by a certain privileged account only.  This is a reasonable approach when the service is only used with a single organization, but would require the distribution of those privleged credentials to any external sites wishing to use it.
+User and group membership information may be private, so who is allowed to make GMS search calls must be considered when implementing a GMS service.  A GMS implementation may insist that GMS search calls must be made by a certain privileged account only.  This is a reasonable approach when the service is only used with a single organization, but would require the distribution of those privileged credentials to any external sites wishing to use it.
 
-Alternatively, a GMS service could have a policy where only the user who is the subject of the membership assertions is allowed to make the GMS search calls.  This approach lends itself well to external interoperability because there need not be any sharing of credentials or trust arrangements between sites--it is always only the user who makes the service calls, even when they are transitive.  This is the approach recommended in the  IVOA credential delegation protocol \citep{std:CDP}.  So, aside from the architectural benefits of employing this pattern, there are some  information privacy concerns that are addressed.
+Alternatively, a GMS service could have a policy where only the user who is the subject of the membership assertions is allowed to make the GMS search calls.  This approach lends itself well to external interoperability because there need not be any sharing of credentials or trust arrangements between sites--it is always only the user who makes the service calls, even when they are transitive.  This is the approach recommended in the  IVOA credential delegation protocol \citep{std:CDP}.  So, aside from the architectural benefits of employing this pattern, there are some information privacy concerns that are addressed.
 
 \subsection{Groups of Groups}
 
