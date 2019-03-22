@@ -20,7 +20,7 @@
 \begin{document}
 \begin{abstract}
 
-The Group Membership Service (GMS) specification describes a REST interface for determining whether a user is a member of a group.  This information can be used to protect access to proprietary resources: clients can issue a call to GMS when an authorization decision needs to be made.  Proprietary resources can be any number of things such as data, metadata or services.  Because a single group can be used to protect multiple resources, GMS enables the creation of groups that represent teams with common authorization rights.  GMS offers organizations an interoperable, flexible and scalable way of protecting a heterogeneous set of resources.
+The Group Membership Service (GMS) specification describes a REST interface for determining whether a user is a member of a group.  This membership information can be used to protect access to proprietary resources.  When an authorization decision is needed, a call to GMS can be made to see if the requesting user is a member of the group assigned to protect the resource, and can thus grant or denied access to the user.  Proprietary resources can be any number of things, such as data, metadata or services.  Because a single group can be used to protect multiple, potentially distributed resources, GMS enables the creation of groups that represent teams with common authorization rights.  GMS offers organizations an interoperable, flexible and scalable way of protecting a heterogeneous set of resources within and outside an origanization.
 
 \end{abstract}
 
@@ -160,16 +160,16 @@ A Group Identifier is an IVOID (\citep{std:VOID2}) used to uniquely and universa
 For GMS, there are four important components to the Group Identifier:
 
 \begin{enumerate}
-\item The \emph{scheme}: Always \emph{ivo} indicating it is an interoperable IVOA ID.
+\item The \emph{scheme}: Always \emph{gms} indicating it is an interoperable GMS IVOA ID.
 \item The \emph{authority}: This identifies the location or instance of the group membership service.
-\item The \emph{path}: Always starting with '/gms', indicating that it is a group URI, with '/instance-name' which is the name of the particular GMS instance within the authority.
-\item The \emph{query}: Identifies the group within the authority and instance.  The name of the group.
+\item The \emph{path}: A implementation specific path identifying a GMS service within an authority.
+\item The \emph{query}: Identifies the group within the authority and instance.  It is the name of the group.
 \end{enumerate}
 
 Below is an example group identifier:
 
 \begin{verbatim}
-ivo://authority.example.com/gms/instance1?groupName
+gms://authority.example.com/gms1?groupName
 \end{verbatim}
 
 To resolve the host GMS service URL, one would issue a query to RegTAP (\citep{std:RegTAP}) to find the accessURL in the interface for the authority.  The following query will return a row for each \xmlel{access\_url} and \xmlel{security\_method\_id} combination.  The ivoid value is calculated by removing the query string from the group identifier.  Since we are looking to perform a is member call, we ask for the GMS search capability, identified by the GMS search standardID (see section below).
@@ -180,14 +180,14 @@ FROM rr.interface
 NATURAL JOIN rr.capability
 NATURAL JOIN rr.resource
 WHERE
-  ivoid = 'ivo://authority.example.com/gms/instance1' AND
+  ivoid = 'gms://authority.example.com/gms1' AND
   standard_id = 'ivo://ivoa.net/std/gms#search-1.0'
 \end{verbatim}
 
 This would result in an access URL capable of supporting a GMS search on the group 'groupName'.  For example:
 
 \begin{verbatim}
-http://server.example.com/myGMSImpl/search
+http://server.example.com/gmsInstance1/search
 \end{verbatim}
 
 \section{GMS Search API}
@@ -219,21 +219,29 @@ Where \emph{search} represents the \xmlel{access\_url} from the RegTAP call and 
 Two (optional) parameters can be supplied to identify the user:
 
 \begin{verbatim}
-user=<user-principal>
-principal=<principle-type>
+identity=<user ID>
+identityType=<user ID type>
 \end{verbatim}
 
-An HTTP GET to \xmlel{/search/\{group\}} shall respond with HTTP 200 (OK) if the user is a member of the \xmlel{\{group\}}.  If the user is not a member of the group, or if the user is not recognized, or if the group is not recognized, the service shall respond with HTTP 403 (Forbidden).
+For a successful HTTP GET to \xmlel{/search/\{group\}}, the service shall respond with HTTP 200 (OK).  If the user is a member of the \xmlel{\{group\}} the service must repeat the name of the group (ending with a newline character) in the response body in text/plain format.  If the user is not a member of the group, or if the user is not recognized, or if the group is not recognized, the service must write no content in the response body.
 
-An HTTP GET to \xmlel{/search} shall return HTTP 200 (OK) with a list of the groupNames in which the user is a member in the response body.  The response must have a Content-Type of \emph {text/plain} and each group must be separated by a new line character.  If the user is not a member of any groups, or if the user is not recognized, the response body must be empty.
+A successful HTTP GET to \xmlel{/search} shall return HTTP 200 (OK) with a list of the groupNames in which the user is a member in the response body.  The response must again have a Content-Type of \emph {text/plain}.  Each group (even the last) must end with a new line character.  If the user is not a member of any groups, or if the user is not recognized, the response body must be empty.
 
-The \emph{user} and \emph{principal} parameters are used to identify the user who is the subject of the membership question.  The \emph{user} field is the username of the user in context of the \emph{principal} value.  For example, when the \emph{principal} field is set to 'X.509', the \emph{user} field will contain the user's distinguished name.  Or, if the \emph{principal} field is set to 'OpenID', the \emph{user} field would contain the user's OpenID token.  For the full list of supported principal types please refer to the User Identification standard (\textbf{Note for authors}: This is to be written).  If the GMS service does not recognize the value of the \emph{principal} parameter, the service shall respond with HTTP 501 (Not Implemented).  If the \emph{principal} parameter is recognized but the user cannot be identified, the service shall respond with a HTTP 403 (Forbidden) (in a call to  \xmlel{/search}) or with an empty list of groups (in a call to  \xmlel{/search/\{group\}}).
+The \emph{identity} and \emph{identityType} parameters are used to identify the user who is the subject of the membership question.  The \emph{identity} field is the username of the user in context of the \emph{identityType} value.  For example, when the \emph{identityType} field is set to 'X.509', the \emph{identity} field will contain the user's distinguished name.  Or, if the \emph{identityType} field is set to 'OAuth', the \emph{identity} field would contain the user's OAuth token.  For the full list of supported principal types please refer to the User Identification standard (\textbf{Note to authors}: This is to be written).
 
 If the \emph{user} and \emph{principal} parameters are not supplied, it is assumed that the user who is the subject of the membership question is the user who is making the REST call.  This pattern will be in use when the call is being made by a service that supports and implements the IVOA Credential Delegation Protocol \citep{std:CDP}.  If the user cannot be identified from the call because they have not authenticated, the service must respond with HTTP 400 (Bad Request).  The other HTTP responses shall be the same as described above where the user was identified by the \emph{user} and \emph{principal} parameters.
 
 If one of \emph{user} or \emph{principal} are supplied, then they both must be supplied.  If only one is supplied then the service must respond with HTTP 400 (Bad Request).
 
-(\textbf{Note for authors}: It could be that the \emph{user} and \emph{principal} parameters are turned into one parameter that is in URI format and contains enough information to identify the user across different authentication mechanisms.)
+For an unsuccessful HTTP GET to \xmlel{/search/\{group\}} or \xmlel{/search}, the service must response with the appropriate HTTP response code.  Some non-200 response codes and the reason for their response are specified here are:
+
+\begin{itemize}
+\item{400} - Bad request:  A parameter name is unrecognized, or the value of a parameter is in an unrecognizable format, or only one of the two identity parameters is supplied.
+\item(401) - Unauthorized:  If a calling user could not be identitfied from the HTTP request or from the supplied \xmlel{identity} and \xmlel{identityType} parameters.
+\item{500} - Internal error:  A service operation failure.
+\end{itemize}
+
+(\textbf{Note for authors}: It could be that the \emph{identity} and \emph{identityType} parameters are turned into one parameter that is in URI format and contains enough information to identify the user across different authentication mechanisms.)
 
 \subsection {Search Examples}
 
