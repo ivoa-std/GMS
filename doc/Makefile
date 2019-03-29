@@ -7,7 +7,7 @@ DOCNAME = GMS
 DOCVERSION = 1.0
 
 # Publication date, ISO format; update manually for "releases"
-DOCDATE = 20181025
+DOCDATE = 20190329
 
 # What is it you're writing: NOTE, WD, PR, or REC
 DOCTYPE = WD
@@ -16,13 +16,13 @@ DOCTYPE = WD
 # be called $(DOCNAME).tex
 SOURCES = $(DOCNAME).tex
 
-# List of pixel image files to be included in submitted package 
+# List of pixel image files to be included in submitted package
 FIGURES = archdiag.png
 
 # List of PDF figures (for vector graphics)
-VECTORFIGURES = 
+VECTORFIGURES =
 
 # Additional files to distribute (e.g., CSS, schema files, examples...)
-AUX_FILES = 
+AUX_FILES =
 
 include ivoatex/Makefile

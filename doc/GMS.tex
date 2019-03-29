@@ -20,14 +20,12 @@
 \begin{document}
 \begin{abstract}
 
-The Group Membership Service (GMS) specification describes a REST interface for determining whether a user is a member of a group.  This membership information can be used to protect access to proprietary resources.  When an authorization decision is needed, a call to GMS can be made to see if the requesting user is a member of the group assigned to protect the resource, and can thus grant or denied access to the user.  Proprietary resources can be any number of things, such as data, metadata or services.  Because a single group can be used to protect multiple, potentially distributed resources, GMS enables the creation of groups that represent teams with common authorization rights.  GMS offers organizations an interoperable, flexible and scalable way of protecting a heterogeneous set of resources within and outside an origanization.
+The Group Membership Service (GMS) specification describes a REST interface for determining whether a user is a member of a group.  This membership information can be used to protect access to proprietary resources.  When an authorization decision is needed, a call to GMS can be made to see if the requesting user is a member of the group assigned to protect the resource and, in turn, grant or deny the user access.  Proprietary resources can be any number of things, such as data, metadata or services.  Because a single group can be used to protect multiple, potentially distributed resources, GMS enables the creation of groups that represent teams with common authorization rights.  GMS offers organizations an interoperable, flexible and scalable way of protecting a heterogeneous set of resources within and outside an origanization.
 
 \end{abstract}
 
-% \section*{Acknowledgments}
-%
-% ???? Or remove the section header ????
-%
+\section*{Acknowledgments}
+For the creation of this document we acknowledge the support of the Canadian Space Agency, the National Research Council Canada, the Italian National Institue of Astrophysics, and the Astronomy ESFRI and Research Infrastructure Cluster (ASTERICS) project under the Horizon 2020 Programme.
 
 \section*{Conformance-related definitions}
 
@@ -200,19 +198,18 @@ The Group Membership Service defines a RESTful API \citep{fielding00} that allow
 ivo://ivoa.net/std/gms#search-1.0
 \end{verbatim}
 
-Within this capability, there are two functions:
+Within this capability, there are two functions and associated endpoints as described in the table below.
 
-\begin{itemize}
-\item \emph{boolean isMember(Group, User)}: Return true if User is a member of Group.
-\item \emph{list<Group> getMemberships(User)}: Return the list of Groups of which User is a member.
-\end{itemize}
-
-The resulting REST API for these functions is as follows:
-
-\begin{verbatim}
-GET /search/{group}
-GET /search
-\end{verbatim}
+\vspace{3mm}
+\begin{tabular}{l l}
+\textbf{Function} & \textbf{Endpoint} \\
+\hline
+boolean isMember(Group, User) & GET /search/\{group\} \\
+\hline
+list<Group> getMemberships(User) & GET /search \\
+\hline
+\end{tabular}
+\vspace{3mm}
 
 Where \emph{search} represents the \xmlel{access\_url} from the RegTAP call and \emph{\{group\}} is the groupName part of a Group Identifier.
 
@@ -265,7 +262,11 @@ To authorize the user, the VOSpace service queries the GMS search service using 
 HTTP GET to http://server.example.com/gmsService/search/my-collaboration
 \end{verbatim}
 
-The GMS service identifies the user, consults it's groups memberhip information, and returns a response code of 200 when confirming the user is a member of group 'my-collaboration'.
+The GMS service identifies the user, consults it's groups memberhip information, and returns a response code of 200 with the string \emph{my-collaboration} written to the response body when confirming the user is a member of group 'my-collaboration'.
+
+\begin{verbatim}
+my-collaboration
+\end{verbatim}
 
 \paragraph{Example 2 - Group access to table data}
 
@@ -278,7 +279,9 @@ ivo://authority.example.com/gms/instance1?my-other-collaboration
 Not wanting to make a REST call for each row that needs to be consulted, the TAP service asks for all groups for the user on the first group protected row that is encountered.  The service does not have the user's delegated credentials, so passes the user information in the search call.
 
 \begin{verbatim}
-HTTP GET to http://server.example.com/gmsService/search?user=myusername&principal=username
+HTTP GET to
+http://server.example.com/gmsService/search
+    ?identity=myusername&identityType=username
 \end{verbatim}
 
 The GMS service returns HTTP 200 and all the groups in which user 'myusername' is a member:
@@ -325,6 +328,13 @@ If one of the contained groups actually exists at another GMS instance, perhaps 
 
 \section{Changes from Previous Versions}
 
+\subsection{Changes from WD-GMS-1.0-20181025}
+\begin{itemize}
+\item{Changed GMS IVOID to be in the format gms://authority/path?group}
+\item{Changed names of params user and principal to identity and identityType}
+\item{Corrected API definition to always return 200 on succcess}
+\item{REST API now described in a table}
+\end{itemize}
 No previous versions yet.
 % these would be subsections "Changes from v. WD-..."
 % Use itemize environments.
