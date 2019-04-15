@@ -44,9 +44,9 @@ infrastructure that enable VO applications.
 
 \section{Introduction}
 
-Through standard IVOA protocols, many astronomy data centres and institutes offer users access to datasets (DALI \citep{std:DALI}, Datalink \citep{std:Datalink}, etc), metadata (TAP \citep{std:TAP}) and storage (VOSpace \citep{std:VOSpace}).  In some cases this information is proprietary -- it is only allowed to be accessed by certain individuals.  Due to the wide variety and inherently institute-specific set of rules that may define how the information is proprietary, it is beneficial to the owners and maintainers of the rules to have a standard way of describing who has access to what resources.  Additionally, the rules describing resource access may be determined by an entity external to the holder of these resources.  To these ends, this document sets out a standard, programmatic, and interoperable method of determining whether a given user is allowed to access a given resource.
+Through standard IVOA protocols, many astronomy data centres and institutes offer users access to datasets (DALI \citep{2017ivoa.spec.0517D}, Datalink \citep{2015ivoa.spec.0617D}, etc), metadata (TAP \citep{2010ivoa.spec.0327D}) and storage (VOSpace \citep{2018ivoa.spec.0621G}).  In some cases this information is proprietary -- it is only allowed to be accessed by certain individuals.  Due to the wide variety and inherently institute-specific set of rules that may define how the information is proprietary, it is beneficial to the owners and maintainers of the rules to have a standard way of describing who has access to what resources.  Additionally, the rules describing resource access may be determined by an entity external to the holder of these resources.  To these ends, this document sets out a standard, programmatic, and interoperable method of determining whether a given user is allowed to access a given resource.
 
-The ideas presented by GMS enable data centres to do authorization checks in an interoperable fashion.  In the context of authorization, interoperability can viewed on two levels:  interoperability amongst the cooperating services \emph{within} a data centre, and interoperability \emph{between} data centres.  Because of the orthogonal nature of authorization, these levels amount to the same problem.
+The ideas presented by GMS enable data centres to do authorization checks in an interoperable fashion.  In the context of authorization, interoperability can viewed on two levels:  interoperability amongst the cooperating services \emph{within} a data centre, and interoperability \emph{between} data centres.  Because of the orthogonal nature of authorization, these amount to the same problem.
 
 Interoperability aside, GMS describes a simple, general, maintainable, and scalable approach to performing authorization, and so is a recommended architectural pattern for managing access to proprietary resources.
 
@@ -100,7 +100,7 @@ Asside from the main use case of restricting access to proprietary resources, GM
 
 \subsection{Definitions}
 
-\paragraph{Authentication} User identification through credentials or identity provider.  See IVOA Single-Sign-On Profile: Authentication Mechanisms.  \citep{std:SSOAUTH}
+\paragraph{Authentication} User identification through credentials or identity provider.  See IVOA Single-Sign-On Profile: Authentication Mechanisms.  \citep{2017ivoa.spec.0524T}
 
 \paragraph{Authorization} Making the decision of whether to grant a user permission to a given resource.  The decision can involve knowing the user's identity.
 
@@ -153,7 +153,7 @@ Systems must use the information in the group identifier to query location to de
 
 \subsection{Group Identifiers}
 
-A Group Identifier is an IVOID (\citep{std:VOID2}) used to uniquely and universally identify groups.  They are attached to proprietary resources as grants.  When it is time to determine group membership, the Group Identifier is resolved to a particular instance of a GMS service and a check for membership call is made.
+A Group Identifier is used to uniquely and universally identify groups.  They are attached to proprietary resources as grants.  When it is time to determine group membership, the Group Identifier is resolved to a particular instance of a GMS service and a check for membership call is made.
 
 For GMS, there are four important components to the Group Identifier:
 
@@ -170,7 +170,7 @@ Below is an example group identifier:
 gms://authority.example.com/gms1?groupName
 \end{verbatim}
 
-To resolve the host GMS service URL, one would issue a query to RegTAP (\citep{std:RegTAP}) to find the accessURL in the interface for the authority.  The following query will return a row for each \xmlel{access\_url} and \xmlel{security\_method\_id} combination.  The ivoid value is calculated by removing the query string from the group identifier.  Since we are looking to perform a is member call, we ask for the GMS search capability, identified by the GMS search standardID (see section below).
+To resolve the host GMS service URL, one would issue a query to RegTAP (\citep{2014ivoa.spec.1208D}) to find the accessURL in the interface for the authority.  The following query will return a row for each \xmlel{access\_url} and \xmlel{security\_method\_id} combination.  The ivoid value is calculated by removing the query string from the group identifier.  Since we are looking to perform a is member call, we ask for the GMS search capability, identified by the GMS search standardID (see section below).
 
 \begin{verbatim}
 SELECT access_url, security_method_id
@@ -185,7 +185,7 @@ WHERE
 This would result in an access URL capable of supporting a GMS search on the group 'groupName'.  For example:
 
 \begin{verbatim}
-http://server.example.com/gmsInstance1/search
+https://server.example.com/gmsInstance1/search
 \end{verbatim}
 
 \section{GMS Search API}
@@ -220,21 +220,21 @@ identity=<user ID>
 identityType=<user ID type>
 \end{verbatim}
 
-For a successful HTTP GET to \xmlel{/search/\{group\}}, the service shall respond with HTTP 200 (OK).  If the user is a member of the \xmlel{\{group\}} the service must repeat the name of the group (ending with a newline character) in the response body in text/plain format.  If the user is not a member of the group, or if the user is not recognized, or if the group is not recognized, the service must write no content in the response body.
+For a successful HTTP GET to \xmlel{/search/\{group\}}, the service shall respond with HTTP 200 (OK).  If the user is a member of the \xmlel{\{group\}} the service must repeat the name of the group (ending with a newline as a CRLF\footnote{Carriage Return character (ASCII 13) plus a Line Feed character (ASCII 10)}) in the response body in text/plain format.  If the user is not a member of the group, or if the user is not recognized, or if the group is not recognized, the service must write no content in the response body.
 
-A successful HTTP GET to \xmlel{/search} shall return HTTP 200 (OK) with a list of the groupNames in which the user is a member in the response body.  The response must again have a Content-Type of \emph {text/plain}.  Each group (even the last) must end with a new line character.  If the user is not a member of any groups, or if the user is not recognized, the response body must be empty.
+A successful HTTP GET to \xmlel{/search} shall return HTTP 200 (OK) with a list of the groupNames in which the user is a member in the response body.  The response must again have a Content-Type of \emph {text/plain}.  Each group (even the last) must end with a CRLF.  If the user is not a member of any groups, or if the user is not recognized, the response body must be empty.
 
-The \emph{identity} and \emph{identityType} parameters are used to identify the user who is the subject of the membership question.  The \emph{identity} field is the username of the user in context of the \emph{identityType} value.  For example, when the \emph{identityType} field is set to 'X.509', the \emph{identity} field will contain the user's distinguished name.  Or, if the \emph{identityType} field is set to 'OAuth', the \emph{identity} field would contain the user's OAuth token.  For the full list of supported principal types please refer to the User Identification standard (\textbf{Note to authors}: This is to be written).
+The \emph{identity} and \emph{identityType} parameters are used to identify the user who is the subject of the membership question.  The \emph{identity} field is the username of the user in context of the \emph{identityType} value.  For example, when the \emph{identityType} field is set to 'X.509', the \emph{identity} field will contain the user's distinguished name.  Or, if the \emph{identityType} field is set to 'OAuth', the \emph{identity} field would contain the user's OAuth token.  For the full list of supported identity types please refer to the User Identification standard (\textbf{Note to authors}: This is to be written).
 
-If the \emph{user} and \emph{principal} parameters are not supplied, it is assumed that the user who is the subject of the membership question is the user who is making the REST call.  This pattern will be in use when the call is being made by a service that supports and implements the IVOA Credential Delegation Protocol \citep{std:CDP}.  If the user cannot be identified from the call because they have not authenticated, the service must respond with HTTP 400 (Bad Request).  The other HTTP responses shall be the same as described above where the user was identified by the \emph{user} and \emph{principal} parameters.
+If the \emph{identity} and \emph{identityType} parameters are not supplied, it is assumed that the user who is the subject of the membership question is the user who is making the REST call.  This pattern will be in use when the call is being made by a service that supports and implements the IVOA Credential Delegation Protocol \citep{2010ivoa.spec.0218P}.  If the user cannot be identified from the call because they have not authenticated, the service must respond with HTTP 400 (Bad Request).  The other HTTP responses shall be the same as described above where the user was identified by the \emph{identity} and \emph{identityType} parameters.
 
-If one of \emph{user} or \emph{principal} are supplied, then they both must be supplied.  If only one is supplied then the service must respond with HTTP 400 (Bad Request).
+If one of \emph{identity} or \emph{identityType} are supplied, then they both must be supplied.  If only one is supplied then the service must respond with HTTP 400 (Bad Request).
 
 For an unsuccessful HTTP GET to \xmlel{/search/\{group\}} or \xmlel{/search}, the service must response with the appropriate HTTP response code.  Some non-200 response codes and the reason for their response are specified here are:
 
 \begin{itemize}
 \item{400} - Bad request:  A parameter name is unrecognized, or the value of a parameter is in an unrecognizable format, or only one of the two identity parameters is supplied.
-\item(401) - Unauthorized:  If a calling user could not be identitfied from the HTTP request or from the supplied \xmlel{identity} and \xmlel{identityType} parameters.
+\item{401} - Unauthorized:  If a calling user could not be identitfied from the HTTP request or from the supplied \xmlel{identity} and \xmlel{identityType} parameters.
 \item{500} - Internal error:  A service operation failure.
 \end{itemize}
 
@@ -250,16 +250,16 @@ A user is trying to download a VOSpace file that has the group-read property set
 ivo://authority.example.com/gms/instance1?my-collaboration
 \end{verbatim}
 
-This resolves (though a RegTAP query for the search API) to host
+This resolves (though a RegTAP query for the search API) to URL
 
 \begin{verbatim}
-http://server.example.com/groupService/search
+https://server.example.com/groupService/search
 \end{verbatim}
 
 To authorize the user, the VOSpace service queries the GMS search service using the user's delegated credentials
 
 \begin{verbatim}
-HTTP GET to http://server.example.com/gmsService/search/my-collaboration
+HTTP GET to https://server.example.com/gmsService/search/my-collaboration
 \end{verbatim}
 
 The GMS service identifies the user, consults it's groups memberhip information, and returns a response code of 200 with the string \emph{my-collaboration} written to the response body when confirming the user is a member of group 'my-collaboration'.
@@ -280,7 +280,7 @@ Not wanting to make a REST call for each row that needs to be consulted, the TAP
 
 \begin{verbatim}
 HTTP GET to
-http://server.example.com/gmsService/search
+https://server.example.com/gmsService/search
     ?identity=myusername&identityType=username
 \end{verbatim}
 
@@ -316,7 +316,7 @@ The collection of data centres and astronomy institutes likely have many ways of
 
 User and group membership information may be private, so who is allowed to make GMS search calls must be considered when implementing a GMS service.  A GMS implementation may insist that GMS search calls must be made by a certain privileged account only.  This is a reasonable approach when the service is only used with a single organization, but would require the distribution of those privileged credentials to any external sites wishing to use it.
 
-Alternatively, a GMS service could have a policy where only the user who is the subject of the membership assertions is allowed to make the GMS search calls.  This approach lends itself well to external interoperability because there need not be any sharing of credentials or trust arrangements between sites -- it is always only the user who makes the service calls, even when they are transitive.  This is the approach recommended in the  IVOA credential delegation protocol \citep{std:CDP}.  So, aside from the architectural benefits of employing this pattern, there are some information privacy concerns that are addressed.
+Alternatively, a GMS service could have a policy where only the user who is the subject of the membership assertions is allowed to make the GMS search calls.  This approach lends itself well to external interoperability because there need not be any sharing of credentials or trust arrangements between sites -- it is always only the user who makes the service calls, even when they are transitive.  This is the approach recommended in the  IVOA credential delegation protocol \citep{2010ivoa.spec.0218P}.  So, aside from the architectural benefits of employing this pattern, there are some information privacy concerns that are addressed.
 
 \subsection{Groups of Groups}
 
