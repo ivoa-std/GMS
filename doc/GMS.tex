@@ -44,7 +44,7 @@ infrastructure that enable VO applications.
 
 \section{Introduction}
 
-Through standard IVOA protocols, many astronomy data centres and institutes offer users access to datasets (DALI \citep{2017ivoa.spec.0517D}, Datalink \citep{2015ivoa.spec.0617D}, etc), metadata (TAP \citep{2010ivoa.spec.0327D}) and storage (VOSpace \citep{2018ivoa.spec.0621G}).  In some cases this information is proprietary -- it is only allowed to be accessed by certain individuals.  Due to the wide variety and inherently institute-specific set of rules that may define how the information is proprietary, it is beneficial to the owners and maintainers of the rules to have a standard way of describing who has access to what resources.  Additionally, the rules describing resource access may be determined by an entity external to the holder of these resources.  To these ends, this document sets out a standard, programmatic, and interoperable method of determining whether a given user is allowed to access a given resource.
+Through standard IVOA protocols, many astronomy data centres and institutes offer users access to datasets (Datalink \citep{2015ivoa.spec.0617D}, Server-side Operations for Data Access \citep{2017ivoa.spec.0517B}, etc), metadata (TAP \citep{2010ivoa.spec.0327D}), and storage (VOSpace \citep{2018ivoa.spec.0621G}).  In some cases this information is proprietary -- it is only allowed to be accessed by certain individuals.  Due to the wide variety and inherently institute-specific set of rules that may define how the information is proprietary, it is beneficial to the owners and maintainers of the rules to have a standard way of describing who has access to what resources.  Additionally, the rules describing resource access may be determined by an entity external to the holder of these resources.  To these ends, this document sets out a standard, programmatic, and interoperable method of determining whether a given user is allowed to access a given resource.
 
 The ideas presented by GMS enable data centres to do authorization checks in an interoperable fashion.  In the context of authorization, interoperability can viewed on two levels:  interoperability amongst the cooperating services \emph{within} a data centre, and interoperability \emph{between} data centres.  Because of the orthogonal nature of authorization, these amount to the same problem.
 
@@ -147,49 +147,69 @@ Systems must use the information in the group identifier to query location to de
 
 \subsection{Group Identifiers}
 
-A Group Identifier is used to uniquely and universally identify groups.  They are attached to proprietary resources as grants.  When it is time to determine group membership, the Group Identifier is resolved to a particular instance of a GMS service and a check for membership call is made.
+A \emph{group identifier} is used to uniquely and universally identify individual groups.  They are attached to proprietary resources for the purpose of referencing the group (or groups) whose members are authorized to access that resource.  When a system needs to do an authorization check because a request for access is being made, it can make the decision based on the response of a membership call to a GMS service.  With the help of an IVOA Registry, the system has all the information it needs within the group identifier to locate the associated GMS service and formulate the REST call to that service for the membership check.
 
-For GMS, there are four important components to the Group Identifier:
+Group identifiers are IVOA Identifiers (IVOIDs) \citep{2016ivoa.spec.0523D}.  This means they can be used to look up the underlying GMS service in an IVOA registry (as is explained in the IVOA Identifiers document).  Group names are specified in the \emph{query} part of the IVOID and are mandatory in group identifiers.  So, group identifiers must conform to all the rules of IVOIDs and also MUST include the \emph{query} part of an IVOID for the group name.
 
-\begin{enumerate}
-\item The \emph{scheme}: Always \emph{gms} indicating it is an interoperable GMS IVOA ID.
-\item The \emph{authority}: This identifies the location or instance of the group membership service.
-\item The \emph{path}: A implementation specific path identifying a GMS service within an authority.
-\item The \emph{query}: Identifies the group within the authority and instance.  It is the name of the group.
-\end{enumerate}
-
-Below is an example group identifier:
+Below is an example of a valid and typical group identifier:
 
 \begin{verbatim}
-gms://authority.example.com/gms1?groupName
+ivo://authority.example.com/groupService?mygroup
 \end{verbatim}
 
-To resolve the host GMS service URL, one would issue a query to RegTAP (\citep{2014ivoa.spec.1208D}) to find the accessURL in the interface for the authority.  The following query will return a row for each \xmlel{access\_url} and \xmlel{security\_method\_id} combination.  The ivoid value is calculated by removing the query string from the group identifier.  Since we are looking to perform a is member call, we ask for the GMS search capability, identified by the GMS search standardID (see section below).
+To resolve the GMS service URL, the system would issue a query to RegTAP \citep{2014ivoa.spec.1208D}.  Following the recommendations in this specification, the query would be done with three necessary constraints in the where clause:
+\begin{itemize}
+\item{ivoid} - The \emph{registry part} of the group identifier.
+\item{standard\_id} - The desired search feature of GMS.
+\item{intf\_role} - Always '\emph{std}', to indicate a standard service is being queried for.
+\end{itemize}
+
+and one optional constraint, \emph{security\_method}, used to identify how clients can authenticate to the GMS service.  To find a GMS service that does not require authorization, the value of the security\_method constraint would be NULL.  However, since anonymously accessible GMS services are not likely to exist (see section \ref{subsec:infopriv}), the query should either:
+
+\begin{itemize}
+\item include a desired security\_method in the where clause, as specified by the IVOA Single-Sign-On Profile \citep{2017ivoa.spec.0524T}, or;
+\item omit the constraint and iterate over the resulting rows to choose an appropriate security method.
+\end{itemize}
+
+The following query will return a row for each access\_url and security\_method\_id combination.  The ivoid value is calculated by removing the query string from the group identifier.  Since we are looking to perform an is member call, we ask for the GMS search capability, identified by the GMS search standardID (see section \ref{subsec:api}).
 
 \begin{verbatim}
-SELECT access_url, security_method_id
-FROM rr.interface
-NATURAL JOIN rr.capability
-NATURAL JOIN rr.resource
-WHERE
-  ivoid = 'gms://authority.example.com/gms1' AND
-  standard_id = 'ivo://ivoa.net/std/gms#search-1.0'
+    SELECT access_url, security_method_id
+    FROM rr.interface
+    NATURAL JOIN rr.capability
+    NATURAL JOIN rr.resource
+    WHERE
+      ivoid = 'ivo://authority.example.com/groupService' 
+      AND standard_id = 'ivo://ivoa.net/std/gms#search-1.0'
+      AND intf_role='std'
 \end{verbatim}
 
-This would result in an access URL capable of supporting a GMS search on the group 'groupName'.  For example:
+This would result in one or more access URLs capable of supporting a GMS search on the group 'groupName' with its corresponding security method support.  For example, it could return three rows with values:
 
-\begin{verbatim}
-https://server.example.com/gmsInstance1/search
-\end{verbatim}
+\vspace{3mm}
+\begin{tabular}{l l}
+\textbf{access\_url} & \textbf{security\_method\_id} \\
+\hline
+https://server.example.com/gms1/search & ivo://ivoa.net/sso\#tls-with-password \\
+https://server.example.com/gms2/search & ivo://ivoa.net/sso\#tls-with-certificate \\
+https://server.example.com/gms2/search & ivo://ivoa.net/sso\#cookie \\
+\hline
+\end{tabular}
+\vspace{3mm}
+
+The first row identifies a URL supporting the GMS search capability supporting username and password authentication.  The second and third rows show a URL that supports both client certificate authentication and cookie authentication.  This also implies that membership information about the group 'mygroup' is available from either access URL.
+
+To then perform the group membership query on any of these URLs, the service would formulate a REST call as defined by the GMS Search API.
 
 \section{GMS Search API}
 
 \subsection{API Definition}
+\label{subsec:api}
 
 The Group Membership Service defines a RESTful API \citep{fielding00} that allows for the determination of whether a user is a member of a group.  This is the GMS search capability and is identified by the following standardID:
 
 \begin{verbatim}
-ivo://ivoa.net/std/gms#search-1.0
+    ivo://ivoa.net/std/gms#search-1.0
 \end{verbatim}
 
 Within this capability, there are two functions and associated endpoints as described in the table below.
@@ -199,7 +219,6 @@ Within this capability, there are two functions and associated endpoints as desc
 \textbf{Function} & \textbf{Endpoint} \\
 \hline
 boolean isMember(Group, User) & GET /search/\{group\} \\
-\hline
 list<Group> getMemberships(User) & GET /search \\
 \hline
 \end{tabular}
@@ -210,8 +229,8 @@ Where \emph{search} represents the \xmlel{access\_url} from the RegTAP call and 
 Two (optional) parameters can be supplied to identify the user:
 
 \begin{verbatim}
-identity=<user ID>
-identityType=<user ID type>
+    identity=<user ID>
+    identityType=<user ID type>
 \end{verbatim}
 
 For a successful HTTP GET to \xmlel{/search/\{group\}}, the service shall respond with HTTP 200 (OK).  If the user is a member of the \xmlel{\{group\}} the service must repeat the name of the group (ending with a newline as a CRLF\footnote{Carriage Return character (ASCII 13) plus a Line Feed character (ASCII 10)}) in the response body in text/plain format.  If the user is not a member of the group, or if the user is not recognized, or if the group is not recognized, the service must write no content in the response body.
@@ -307,6 +326,7 @@ The concept of users and user identity is core to group authorization.  When a s
 The collection of data centres and astronomy institutes likely have many ways of identifying users.  They could be using external identity providers, they could have a local database of users, or may have a combination of these and other approaches.  This specification does not require such a design.  Instead, it requires simply that users can be uniquely identified within the scope of a GMS service's domain.  If a user identity reaches beyond the scope of a GMS service's domain (such as an X.500 distinguished name \citep{std:RFC1779}), then it, too, may be referenced by the service.
 
 \subsection{Information Privacy}
+\label{subsec:infopriv}
 
 User and group membership information may be private, so who is allowed to make GMS search calls must be considered when implementing a GMS service.  A GMS implementation may insist that GMS search calls must be made by a certain privileged account only.  This is a reasonable approach when the service is only used with a single organization, but would require the distribution of those privileged credentials to any external sites wishing to use it.
 
@@ -322,9 +342,16 @@ If one of the contained groups actually exists at another GMS instance, perhaps 
 
 \section{Changes from Previous Versions}
 
+\subsection{Changes from WD-GMS-1.0-20190329}
+\begin{itemize}
+\item{Reverted Group Identifier to be an IVOID}
+\item{Corrections and clarifications to registry query procedure}
+\item{Updated bibliography references}
+\end{itemize}
+
 \subsection{Changes from WD-GMS-1.0-20181025}
 \begin{itemize}
-\item{Changed GMS IVOID to be in the format gms://authority/path?group}
+\item{Changed Group identifier URI to be in the format gms://authority/path?group}
 \item{Changed names of params user and principal to identity and identityType}
 \item{Corrected API definition to always return 200 on succcess}
 \item{REST API now described in a table}
