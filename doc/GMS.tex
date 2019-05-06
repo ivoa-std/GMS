@@ -122,7 +122,7 @@ When looking at a system that has proprietary resources that need to be protecte
 With these phases in mind and with the use cases defined, we can state that the goals of authorization are to:
 
 \begin{itemize}
-\item To allow for restricted access certain resources: only a certain set of individuals may access certain resources.
+\item To allow for restricted access to certain resources: only a certain set of individuals may access certain resources.
 \item To allow certain individuals to set the access rules on resources.  The owner(s) of the resources need to manage the access rules.
 \item To be able to re-use granting rules between resources.  Projects must authorize access to a variety of proprietary resources.
 \item To be able manage granting rules at a single location.  Projects should not have to update each resource on a change to a re-used grant.
@@ -243,7 +243,7 @@ If the \emph{identity} and \emph{identityType} parameters are not supplied, it i
 
 If one of \emph{identity} or \emph{identityType} are supplied, then they both must be supplied.  If only one is supplied then the service must respond with HTTP 400 (Bad Request).
 
-For an unsuccessful HTTP GET to \xmlel{/search/\{group\}} or \xmlel{/search}, the service must response with the appropriate HTTP response code.  Some non-200 response codes and the reason for their response are specified here are:
+For an unsuccessful HTTP GET to \xmlel{/search/\{group\}} or \xmlel{/search}, the service must respond with the appropriate HTTP response code.  Some non-200 response codes and the reason for their response are specified here are:
 
 \begin{itemize}
 \item{400} - Bad request:  A parameter name is unrecognized, or the value of a parameter is in an unrecognizable format, or only one of the two identity parameters is supplied.
@@ -275,7 +275,7 @@ To authorize the user, the VOSpace service queries the GMS search service using 
 HTTP GET to https://server.example.com/gmsService/search/my-collaboration
 \end{verbatim}
 
-The GMS service identifies the user, consults it's groups memberhip information, and returns a response code of 200 with the string \emph{my-collaboration} written to the response body when confirming the user is a member of group 'my-collaboration'.
+The GMS service identifies the user, consults its group membership information, and returns a response code of 200 with the string \emph{my-collaboration} written to the response body when confirming the user is a member of group 'my-collaboration'.
 
 \begin{verbatim}
 my-collaboration
