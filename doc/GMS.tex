@@ -75,7 +75,7 @@ GMS can be used by any software that needs to check, for authorization purposes,
 
 \subsection{Use Cases}
 
-Asside from the main use case of restricting access to proprietary resources, GMS supports a number of other use cases, of both the user and system variety.
+Aside from the main use case of restricting access to proprietary resources, GMS supports a number of other use cases, of both the user and system variety.
 
 \paragraph{Proprietary information} Restricting access to proprietary resources to certain users.
 
@@ -118,7 +118,7 @@ When looking at a system that has proprietary resources that need to be protecte
 \item When users try to access resources, the granting rules for that resource are evaluated at runtime. This is the \emph{authorization check}.
 \end{enumerate}
 
-With these phases in mind and with the use cases defined, we can state that the goals of authorization are to:
+With these phases in mind and with the use cases defined, we can state that the goals of authorization are:
 
 \begin{itemize}
 \item To allow for restricted access to certain resources: only a certain set of individuals may access certain resources.
@@ -156,7 +156,7 @@ Below is an example of a valid and typical group identifier:
 ivo://authority.example.com/groupService?mygroup
 \end{verbatim}
 
-There are two ways to resolve the associated GMS service URL:  lookup the document associated with \emph{ivo://authority.example.com/groupService} in the registry; or, issue a RegTAP query for relavent elements of that document.  Here we explain how this would be done with a RegTAP query \citep{2014ivoa.spec.1208D}.  Following the recommendations in that specification, the query would be done with three necessary constraints in the where clause:
+There are two ways to resolve the associated GMS service URL:  lookup the document associated with \emph{ivo://authority.example.com/groupService} in the registry; or, issue a RegTAP query for relevant elements of that document.  Here we explain how this would be done with a RegTAP query \citep{2014ivoa.spec.1208D}.  Following the recommendations in that specification, the query would be done with three necessary constraints in the where clause:
 \begin{itemize}
 \item{ivoid} - The \emph{registry part} of the group identifier.
 \item{standard\_id} - The desired search feature of GMS.
@@ -310,7 +310,7 @@ my-other-collaboration
 my-final-collaboration
 \end{verbatim}
 
-The TAP services caches this group membership information for the lifetime of the request so that it can be used if necessary when checking other rows.  If a read-group entry with a different \emph{registry part} of the group identifier is encountered, the TAP service must call that GMS service too and add the list of groups to its cache.
+The TAP service caches this group membership information for the lifetime of the request so that it can be used if necessary when checking other rows.  If a read-group entry with a different \emph{registry part} of the group identifier is encountered, the TAP service must call that GMS service too and add the list of groups to its cache.
 
 \section {Implementation}
 
