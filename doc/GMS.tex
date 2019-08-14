@@ -328,7 +328,7 @@ The concept of users and user identity is core to group authorization.  When a s
 
 (Author note: add reference or table of user identity types.)
 
-The collection of data centres and astronomy institutes likely have many ways of identifying users.  They could be using external identity providers, they could have a local database of users, or may have a combination of these and other approaches.  This specification does not require such a design.  Instead, it requires simply that users can be uniquely identified within the scope of a GMS service's domain.  If a user identity reaches beyond the scope of a GMS service's domain (such as an X.500 distinguished name \citep{std:RFC1779}), then it, too, may be referenced by the service.
+The collection of data centres and astronomy institutes likely have many ways of identifying users.  They could be using external identity providers, they could have a local database of users, or may have a combination of these and other approaches.  This specification does not require such a design.  Instead, it requires simply that users can be uniquely identified within the scope of a GMS service's realm.  If a user identity reaches beyond the scope of a GMS service's realm (such as an X.509 client certificate), then it, too, may be referenced by the service.
 
 \subsection{Information Privacy}
 \label{subsec:infopriv}
