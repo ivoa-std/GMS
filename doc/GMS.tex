@@ -44,7 +44,7 @@ infrastructure that enable VO applications.
 
 \section{Introduction}
 
-Through standard IVOA protocols, many astronomy data centres and institutes offer users access to datasets (Datalink \citep{2015ivoa.spec.0617D}, Server-side Operations for Data Access \citep{2017ivoa.spec.0517B}, etc), metadata (TAP \citep{2010ivoa.spec.0327D}), and storage (VOSpace \citep{2018ivoa.spec.0621G}).  In some cases this information is proprietary -- it is only allowed to be accessed by certain individuals.  Due to the wide variety and inherently institute-specific set of rules that may define how the information is proprietary, it is beneficial to the owners and maintainers of the rules to have a standard way of describing who has access to what resources.  Additionally, the rules describing resource access may be determined by an entity external to the holder of these resources.  To these ends, this document sets out a standard, programmatic, and interoperable method of determining whether a given user is allowed to access a given resource.
+Through standard IVOA protocols, many astronomy data centres and institutes offer users access to datasets through Datalink (Datalink \citep{2015ivoa.spec.0617D}) and SODA (Server-side Operations for Data Access \citep{2017ivoa.spec.0517B}, etc), metadata and catalogs through TAP (\citep{2010ivoa.spec.0327D}), and storage through VOSpace (\citep{2018ivoa.spec.0621G}).  There are also many instances of custom access services to astronomy resources.  In certain cases the information within these services is proprietary -- it is only allowed to be accessed by certain individuals.  Due to the wide variety and inherently institute-specific set of rules that may define how the information is proprietary, it is beneficial to the owners and maintainers of the rules to have a standard way of describing who has access to what resources.  Additionally, the rules describing resource access may be determined by an entity external to the holder of these resources.  To these ends, this document sets out a standard, programmatic, and interoperable method of determining whether a given user is allowed to access a given proprietary resource.
 
 The ideas presented by GMS enable data centres to do authorization checks in an interoperable fashion.  In the context of authorization, interoperability can viewed on two levels:  interoperability amongst the cooperating services \emph{within} a data centre, and interoperability \emph{between} data centres.  Because of the orthogonal nature of authorization, these amount to the same problem.
 
@@ -52,11 +52,13 @@ Interoperability aside, GMS describes a simple, general, maintainable, and scala
 
 \subsection{Proprietary resources}
 
-Most facilities have a period of time in which only the Principal Investigator's team has access to observation metadata and data files.  Even without a proprietary period, time is required to verify and validate observations before they can be made public.
+Most facilities have a period of time in which only the Principal Investigator and the associated team has access to observation metadata and data files.  Even without a proprietary period, time is required to verify and validate observations before they can be made public.
 
-Projects also frequently create higher level products such as catalogs and images.  On many occasions, they must be accessible to only those who are authorized.
+Programs create higher level products such as catalogs and images.  On many occasions, they must be accessible to only those who are authorized.
 
-Proprietary information exists.  For it to be made available in a data centre to those with authorization, a way of performing that authorization check is required.
+Many organizations have internal, custom services with private or sensitive data.  Similarily, organizations are using TAP to to access relational data that serves only internal or operational purposes and should not be exposed to the general public.
+
+In these ways and others, proprietary resources exist.  For these to be made available to those with authorization, we require a consistent way of performing authorization checks.
 
 \subsection{Role within the VO Architecture}
 
@@ -71,7 +73,7 @@ Proprietary information exists.  For it to be made available in a data centre to
 Fig.~\ref{fig:archdiag} shows the role this document plays within the
 IVOA architecture \citep{note:VOARCH}.
 
-GMS can be used by any software that needs to check, for authorization purposes, whether a user is a member of group.  Because of this general use case, GMS cuts through all of the IVOA and lies squarely in the middle of the SHARING technical resource in the IVOA architecture diagram.
+GMS can be used by any software that needs to check, for authorization purposes, whether a user is a member of group.  Because of this general purpose functionality, GMS slices through all IVOA standards and lies in the middle of the SHARING technical resource in the IVOA architecture diagram.  Indeed, GMS allows for the sharing of proprietary resources to a limited audience.
 
 \subsection{Use Cases}
 
@@ -85,27 +87,29 @@ Aside from the main use case of restricting access to proprietary resources, GMS
 
 \paragraph{Remotely managing access} A project may wish to control access to resources that reside externally.
 
-\paragraph{Access rule sharing} A project may consist of a variety of resources that can be all managed by the same access rules.
+\paragraph{Access rule sharing} A project may consist of a variety of resources that can be all managed by the same access rule: group membership certification.
 
-\paragraph{Extending the services of a data centre} A project that has hosted data and metadata at a data centre may wish to create value-added services outside of the data centre itself.  If some of the data or metadata is proprietary, the extended services may need to determine if a user is allowed to perform certain action on that data or metadata.
+\paragraph{Extending the services of a data centre} A project that has hosted data and metadata at a data centre may wish to create value-added services outside of the data centre itself.  If some of the data or metadata is proprietary, the extended services may need to determine if a user is allowed to perform certain action on that data or metadata.  A remote GMS instance can be used in this way.
 
-\paragraph{Cooperating institutes} Two or more institutes may work together on a single project that involves proprietary resources so require a common mechanism for protecting those resources.
+\paragraph{Cooperating institutes} Two or more institutes may work together on a single project that involves proprietary resources and would benefit from a single, standard mechanism for protecting those resources.
 
 \subsection{Definitions}
 
-\paragraph{Authentication} User identification through credentials or identity provider.  See IVOA Single-Sign-On Profile: Authentication Mechanisms.  \citep{2017ivoa.spec.0524T}
+\paragraph{Authentication} User identification through credentials or identity provider.  Refer to the IVOA Single-Sign-On Profile: Authentication Mechanisms.  \citep{2017ivoa.spec.0524T}
 
-\paragraph{Authorization} Making the decision of whether to grant a user permission to a given resource.  The decision can involve knowing the user's identity.
+\paragraph{Authorization} Making the decision of whether to grant a user permission to a given resource.  The decision usually involves knowing the user's identity obtained through authentication.
 
-\paragraph{Resource} Something that may require authorization for access.  For example, a service, a data file, metadata.
+\paragraph{GMS Authorization} Making the decision of whether to grant a user permission to a given resource by ensuring the authenticated user is a member of the group assigned to protect that resource.
 
-\paragraph{User} An individual identified by authentication.
+\paragraph{Resource} Something that may require authorization for access.  For example, a service, a data file, metadata, a catalog, or infrastructure.
+
+\paragraph{User} An individual or entity identified by authentication that is attempting to perform some action.
 
 \paragraph{Group} A set of users.
 
-\paragraph{Grant} Authorizing access to a protected resource by assigning a group.
+\paragraph{Grant} Authorizing access to a proprietary resource by assigning a group to protect that resource.
 
-\paragraph{Revoke} Removing access to a protected resource by removing an assigned group.
+\paragraph{Revoke} Removing access to a proprietary resource by removing an assigned group.
 
 \paragraph{Owner} A user or group of users who may grant or revoke access to a specific resource.
 
