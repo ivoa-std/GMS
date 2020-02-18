@@ -20,7 +20,7 @@
 \begin{document}
 \begin{abstract}
 
-The Group Membership Service (GMS) specification describes a REST interface for determining whether a user is a member of a group.  This membership information can be used to protect access to proprietary resources.  When an authorization decision is needed, a call to GMS can be made to see if the requesting user is a member of the group assigned to protect the resource and, in turn, grant or deny the user access.  Proprietary resources can be any number of things, such as data, metadata or services.  Because a single group can be used to protect multiple, potentially distributed resources, GMS enables the creation of groups that represent teams with common authorization rights.  GMS offers organizations an interoperable, flexible and scalable way of protecting a heterogeneous set of resources within and outside an origanization.
+The Group Membership Service (GMS) specification describes a service interface for determining whether a user is a member of a group.  Membership information can be used to protect access to proprietary resources.  When an authorization decision is needed (whether to grant or deny access to a proprietary resource), a call to GMS can be made to see if the requesting user is a member of the group assigned to protect the resource in question.  Examples of proprietary resources are wide ranging but include: observation data and metadata and scarce or limited services and infrastructure.  Because this specification details how a single group can protect multiple, potentially distributed, resources, it allows for the representation of teams with common authorization rights.  The members of such teams can span multiple organizations but can be managed within a single service.  In this way, GMS offers an interoperable, flexible, and scalable mechanism for sharing proprietary assets with a potential dynamic set of team members.
 
 \end{abstract}
 
@@ -346,6 +346,11 @@ If one of the contained groups actually exists at another GMS instance, perhaps 
 \appendix
 
 \section{Changes from Previous Versions}
+
+\subsection{Changes from WD-GMS-1.0-20190506}
+\begin{itemize}
+\item{Abstract rephrased}
+\end{itemize}
 
 \subsection{Changes from WD-GMS-1.0-20190329}
 \begin{itemize}
