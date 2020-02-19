@@ -140,13 +140,13 @@ Why are groups a good model for authorization?  When a system needs to perform a
 
 A simple approach would be to add the identity of the user to the resource.  However, this is too restrictive as there may be multiple users who are allowed access.  So, we could instead add a list of user identities to the resource being protected.  It becomes a problem when there are two resources that need protecting by the same set of individuals.  This becomes difficult to maintain because a change in access rules (\emph{granting and revoking access}) would mean a change to multiple resources.
 
-So, it becomes clear that this list of users needs to be decoupled from the resource so that it can be referenced and shared by multiple resources.  To do so, the list must become a single entity than can be referenced by a name.  And so, we must now have a named group of users.
+So, it becomes clear that this list of users needs to be decoupled from the resource so that it can be referenced and shared by multiple resources.  To do so, the list must become a single entity than can be referenced by a name.  And so, we must have a named group of users.
 
 A central repository of groups of users would introduce other problems:  a single point of failure, and the inability to partition groups of users.  Thus, the \emph{location} of the group must accompany the group reference so that it is possible to have multiple collections of groups of users and multiple associated GMS services.
 
 Resources must then reference a group by a URI with a location and a name that is unique within that location.  This is called the Group Identifier.
 
-Systems must use the information in the group identifier to query location to determine if the user is a member of the group.  Because the location may be outside of the immediate vicinity of the resource, this query must be performed in a standard and accessible manner and so is defined as a RESTful interface to group membership.
+Systems must use the information in the group identifier to determine if the user is a member of the group.  Because the location may be outside of the immediate vicinity of the resource, this query must be performed in a standard and accessible manner and so is defined as a RESTful interface to group membership.
 
 \subsection{Group Identifiers}
 
@@ -160,7 +160,7 @@ Below is an example of a valid and typical group identifier:
 ivo://authority.example.com/groupService?mygroup
 \end{verbatim}
 
-There are two ways to resolve the associated GMS service URL:  lookup the document associated with \emph{ivo://authority.example.com/groupService} in the registry; or, issue a RegTAP query for relevant elements of that document.  Here we explain how this would be done with a RegTAP query \citep{2014ivoa.spec.1208D}.  Following the recommendations in that specification, the query would be done with three necessary constraints in the where clause:
+There are two ways to resolve the associated GMS service URL:  lookup the document associated with \emph{ivo://authority.example.com/groupService} in the registry; or, issue a RegTAP (\citep{2014ivoa.spec.1208D}) query for relevant elements of that document.  Here we explain the RegTAP approach.  Following the recommendations in that specification, the query would be done with three necessary constraints in the where clause:
 \begin{itemize}
 \item{ivoid} - The \emph{registry part} of the group identifier.
 \item{standard\_id} - The desired search feature of GMS.
@@ -174,7 +174,7 @@ and one optional constraint, \emph{security\_method\_id}, used to identify how c
 \item omit the constraint and iterate over the resulting rows to choose an appropriate security method.
 \end{itemize}
 
-The following query will return a row for each access\_url and security\_method\_id combination.  The ivoid value is calculated by removing the query string from the group identifier.  Since we are looking to perform an is member call, we ask for the GMS search capability, identified by the GMS search standardID (see section \ref{subsec:api}).
+The following query will return a row for each access\_url and security\_method\_id combination.  The ivoid value is calculated by removing the query string from the group identifier.  Since we are looking to perform an \emph{is member} call, we ask for the GMS search capability, identified by the GMS search standardID (see section \ref{subsec:api}).
 
 \begin{verbatim}
     SELECT access_url, security_method_id
@@ -232,34 +232,28 @@ list<Group> getMemberships(User) & GET /search \\
 
 Where \emph{search} represents the \xmlel{access\_url} from the RegTAP call and \emph{\{group\}} is the groupName part of a Group Identifier.
 
-Two (optional) parameters can be supplied to identify the user:
-
-\begin{verbatim}
-    identity=<user ID>
-    identityType=<user ID type>
-\end{verbatim}
-
 For a successful HTTP GET to \xmlel{/search/\{group\}}, the service shall respond with HTTP 200 (OK).  If the user is a member of \xmlel{\{group\}}, the service must repeat the name of the group (ending with a newline as a CRLF\footnote{Carriage Return character (ASCII 13) plus a Line Feed character (ASCII 10)}) in the response body in text/plain format.  If the user is not a member of the group, or if the user is not recognized, or if the group is not recognized, the service must return an empty response body.
 
 A successful HTTP GET to \xmlel{/search} shall return HTTP 200 (OK) with a list of the groupNames in which the user is a member in the response body.  The response must again have a Content-Type of \emph {text/plain}.  Each group (even the last) must end with a CRLF.  If the user is not a member of any groups, or if the user is not recognized, the response body must be empty.
 
-The \emph{identity} and \emph{identityType} parameters are used to identify the user who is the subject of the membership question.  The \emph{identity} field is the username of the user in context of the \emph{identityType} value.  For example, when the \emph{identityType} field is set to 'X.509', the \emph{identity} field will contain the user's distinguished name.  Or, if the \emph{identityType} field is set to 'OAuth', the \emph{identity} field would contain the user's OAuth token.  For the full list of supported identity types please refer to the User Identification standard (\textbf{Note to authors}: This is to be written).
-
-If the \emph{identity} and \emph{identityType} parameters are not supplied, it is assumed that the user who is the subject of the membership question is the user who is making the REST call.  This pattern will be in use when the call is being made by a service that supports and implements the IVOA Credential Delegation Protocol \citep{2010ivoa.spec.0218P}.  If the user cannot be identified from the call because they have not authenticated, the service must respond with HTTP 400 (Bad Request).  The other HTTP responses shall be the same as described above where the user was identified by the \emph{identity} and \emph{identityType} parameters.
-
-If one of \emph{identity} or \emph{identityType} are supplied, then they both must be supplied.  If only one is supplied then the service must respond with HTTP 400 (Bad Request).
+It is the authenticated user (the user making the REST call) who is the subject of the of the membership question.  This user's identity is determined by one of the authentication mechanisms described in the IVOA Single-Sign-On Profile.  If the user cannot be identified from the call because they have not authenticated, the service must respond with HTTP 400 (Bad Request).
 
 For an unsuccessful HTTP GET to \xmlel{/search/\{group\}} or \xmlel{/search}, the service must respond with the appropriate HTTP response code.  Some non-200 response codes and the reason for their response are:
 
 \begin{itemize}
-\item{400} - Bad request:  A parameter name is unrecognized, or the value of a parameter is in an unrecognizable format, or only one of the two identity parameters is supplied.
 \item{400} - Bad request:  If a calling user could not be identitfied from the HTTP request or from the supplied \xmlel{identity} and \xmlel{identityType} parameters.
 \item{500} - Internal error:  A service operation failure.
 \end{itemize}
 
-For 400 error responses, is recommended that services include, in the response body, textual information about the problem and how clients should change the request details.
+For 400 error responses, is recommended that services include, in the response body, textual information about the problem and how clients should change the request for a successful subsequent request.
 
-(Note to authors: It could be that the \emph{identity} and \emph{identityType} parameters are turned into one parameter that is in URI format and contains enough information to identify the user across different authentication mechanisms.  For example: x509:c=ca,o=grid,ou=nrc-cnrc.gc.ca,cn=brian major)
+\subsection {GMS and Credential Delegation}
+
+It is unlikely that users would need to make use of GMS directly unless they would like to ask the service about their group membership for informational purposes.  The main use cases involve systems and services calling GMS for authorization checks.
+  Thus, these systems and services need to make the GMS call
+This pattern will be in use when the call is being made by a service that supports and implements the IVOA Credential Delegation Protocol \citep{2010ivoa.spec.0218P}.
+
+TBD
 
 \subsection {Search Examples}
 
@@ -303,7 +297,6 @@ In anticipation of more rows to follow, and to avoid needing to make multiple ca
 \begin{verbatim}
 HTTP GET to
 https://server.example.com/gmsService/search
-    ?identity=myusername&identityType=username
 \end{verbatim}
 
 The GMS service returns HTTP 200 and all the groups in which user 'myusername' is a member:
@@ -353,7 +346,9 @@ If one of the contained groups actually exists at another GMS instance, perhaps 
 
 \subsection{Changes from WD-GMS-1.0-20190506}
 \begin{itemize}
-\item{Abstract rephrased}
+\item{General text changes for clarification in abstract and sections 1, 3}
+\item{Removed support for identifying the 'target user' of a GMS call with id parameters.  The 'target user' is now always the user making the REST API call to GMS.}
+\item{Added new sub-section: GMS and Credential Delegation}
 \end{itemize}
 
 \subsection{Changes from WD-GMS-1.0-20190329}
