@@ -212,7 +212,7 @@ To then perform the group membership query on any of these URLs, the service wou
 \subsection{API Definition}
 \label{subsec:api}
 
-The Group Membership Service defines a RESTful API \citep{fielding00} that allows for the determination of whether a user is a member of a group.  This is the GMS search capability and is identified by the following standardID:
+The Group Membership Service defines a RESTful API \citep{fielding00} that allows for the determination of whether a user is a member of a group.  This is the GMS search capability and is identified by the following standard ID:
 
 \begin{verbatim}
     ivo://ivoa.net/std/gms#search-1.0
@@ -241,15 +241,14 @@ It is the authenticated user (the user making the REST call) who is the subject 
 For an unsuccessful HTTP GET to \xmlel{/search/\{group\}} or \xmlel{/search}, the service must respond with the appropriate HTTP response code.  Some non-200 response codes and the reason for their response are:
 
 \begin{itemize}
-\item{400} - Bad request:  If a calling user could not be identitfied from the HTTP request or from the supplied \xmlel{identity} and \xmlel{identityType} parameters.
-\item{500} - Internal error:  A service operation failure.
+\item{400} - If an authenticated user could not be identitfied from the HTTP request.  The response message should indicate that the user is unknown to the system.
+\item{403} - If the calling user has not authenticated.  The response message should indicate that the user must authenticate to use the service.
+\item{500} - A service operation failure.  
 \end{itemize}
-
-For 400 error responses, is recommended that services include, in the response body, textual information about the problem and how clients should change the request for a successful subsequent request.
 
 \subsection {GMS and Credential Delegation}
 
-It is unlikely that users would need to make use of GMS directly unless they would like to ask the service about their group membership for informational purposes.  The main use cases involve systems and services calling GMS for authorization checks.
+It is unlikely that users would need to make use of GMS directly.   unless they would like to ask the service about their group membership for informational purposes.  The main use cases involve systems and services calling GMS for authorization checks.
   Thus, these systems and services need to make the GMS call
 This pattern will be in use when the call is being made by a service that supports and implements the IVOA Credential Delegation Protocol \citep{2010ivoa.spec.0218P}.
 
