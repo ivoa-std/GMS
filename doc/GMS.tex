@@ -51,6 +51,7 @@ The ideas presented by GMS enable data centres to do authorization checks in an 
 Interoperability aside, GMS describes a simple, general, maintainable, and scalable approach to performing authorization, and so is a recommended architectural pattern for managing access to proprietary resources.
 
 \subsection{Proprietary resources}
+\label{subsec:propresources}
 
 Most facilities have a period of time in which only the Principal Investigator and the associated team has access to observation metadata and data files.  Even without a proprietary period, time is required to verify and validate observations before they can be made public.
 
@@ -61,6 +62,7 @@ Many organizations have internal, custom services with private or sensitive data
 In these ways and others, proprietary resources exist.  For these to be made available to those with authorization, we require a consistent way of performing authorization checks.
 
 \subsection{Role within the VO Architecture}
+\label{subsec:roleinarch}
 
 \begin{figure}
 \centering
@@ -76,6 +78,7 @@ IVOA architecture \citep{note:VOARCH}.
 GMS can be used by any software that needs to check, for authorization purposes, whether a user is a member of group.  Because of this general purpose functionality, GMS slices through all IVOA standards and lies in the middle of the SHARING technical resource in the IVOA architecture diagram.  Indeed, GMS allows for the sharing of proprietary resources to a limited audience.
 
 \subsection{Use Cases}
+\label{subsec:usecases}
 
 Aside from the main use case of restricting access to proprietary resources, GMS supports a number of other use cases, of both the user and system variety.
 
@@ -135,6 +138,7 @@ With these phases in mind and with the use cases defined, we can state that the 
 \section{Groups}
 
 \subsection{Why Groups?}
+\label{subsec:whygroups}
 
 Why are groups a good model for authorization?  When a system needs to perform an \emph{authorization check} on a resource, it is trying to determine if the authenticated user is allowed access.  There are a number of options on how this can be accomplished.
 
@@ -149,6 +153,7 @@ Resources must then reference a group by a URI with a location and a name that i
 Systems must use the information in the group identifier to determine if the user is a member of the group.  Because the location may be outside of the immediate vicinity of the resource, this query must be performed in a standard and accessible manner and so is defined as a RESTful interface to group membership.
 
 \subsection{Group Identifiers}
+\label{subsec:groupids}
 
 A \emph{group identifier} is used to uniquely and universally identify individual groups.  They are attached to proprietary resources for the purpose of referencing the group (or groups) whose members are authorized to access that resource.  When a system needs to do an authorization check because a request for access is being made, it can make the decision based on the response of a membership call to a GMS service.  With the help of an IVOA Registry, the system has all the information it needs within the group identifier to locate the associated GMS service and formulate the REST call to that service for the membership check.
 
@@ -246,15 +251,8 @@ For an unsuccessful HTTP GET to \xmlel{/search/\{group\}} or \xmlel{/search}, th
 \item{500} - A service operation failure.  
 \end{itemize}
 
-\subsection {GMS and Credential Delegation}
-
-It is unlikely that users would need to make use of GMS directly.   unless they would like to ask the service about their group membership for informational purposes.  The main use cases involve systems and services calling GMS for authorization checks.
-  Thus, these systems and services need to make the GMS call
-This pattern will be in use when the call is being made by a service that supports and implements the IVOA Credential Delegation Protocol \citep{2010ivoa.spec.0218P}.
-
-TBD
-
 \subsection {Search Examples}
+\label{subsec:examples}
 
 \paragraph{Example 1 - Group access to a VOSpace Node}
 
@@ -308,45 +306,51 @@ my-final-collaboration
 
 The TAP service caches this group membership information for the lifetime of the request so that it can be used if necessary when checking other rows.  If a read-group entry with a different \emph{registry part} of the group identifier is encountered, the TAP service must call that GMS service too and add the list of groups to its cache.
 
+\subsection {GMS and Credential Delegation}
+\label{subsec:creddel}
+
+User and group membership information may be considered private, so determining who is allowed to make GMS search calls is an important consideration.  This is part of the reason why the specification only allows for group membership checks to be made by the user whose membership is being checked (the 'target user').  This rule ensures that only the target user can see their group membership information.
+
+This rule also means that the caller of GMS must use the credentials (proxy certificate, token, etc..) of the target user.  Although users may themselves call GMS for membership information it is generally not very useful in their hands.  The target use case is for programmatic systems to call GMS for authorization checks.  So, those systems must have access to the target user's credentials.  This is accomplished through use of the IVOA Credential Delegation Protocol \citep{2010ivoa.spec.0218P}.
+
+An alternative to this approach, which was thoroughly considered, is to also allow the use of privileged credentials to make GMS calls.  That is: allow the set of systems that need to do authorization checks to make GMS calls for any target user.  There are a number of problems with this.
+
+New systems that need to do authorization checks require authorization to make those calls so would have to be added to a set of rules.  This is a maintenance step that can be avoided.  When there is a chain of privileged service calls that need to be made, the complexity of mapping and maintaining those rules increases quickly.  This complexity is compounded when needing to interoperate with external GMS instances.
+
+Another problem with making external GMS calls with privileged accounts is the need for a trust arrangement between the hosts.  Organizations would need to ask each other to allow GMS calls to work for certain privileged accounts.
+
+When service calls are always made by the originating user, then services such as GMS only have to concern themselves with the caller of the service, so the complexity and potential for error is much reduced.  Information privacy is easily controlled when only the user may see membership information.
+
 \section {Implementation}
 
 \subsection {Implementation Options}
+\label{subsec:implopts}
+
+An implementation of GMS requires a system that associates users with zero or more groups, some options include:
 
 \begin{itemize}
 \item Via Grouper (groups in MySQL, users in LDAP) \footnote{https://www.internet2.edu/products-services/trust-identity/grouper/}
-\item LDAP only with memberOf plugin (supports groups-of-groups)
-\item VOSpace implementation: ContainerNodes = groups, DataNodes = users
+\item By using LDAP only with group membership plugins.
+\item Through a relational database.
+\item A VOSpace implementation: It is conceivable that VOSpace could be used to implement GMS, where ContainerNodes represent groups and DataNodes represent users.
 \end{itemize}
 
-\subsection{User Identity}
-
-The concept of users and user identity is core to group authorization.  When a system makes a call to a GMS service to determine if the user trying to access the resource is a member of a group, the GMS service needs to identify that user with the users in various groups.
-
-(Author note: add reference or table of user identity types.)
-
-The collection of data centres and astronomy institutes likely have many ways of identifying users.  They could be using external identity providers, they could have a local database of users, or may have a combination of these and other approaches.  This specification does not require such a design.  Instead, it requires simply that users can be uniquely identified within the scope of a GMS service's realm.  If a user identity reaches beyond the scope of a GMS service's realm (such as an X.509 client certificate), then it, too, may be referenced by the service.
-
-\subsection{Information Privacy}
-\label{subsec:infopriv}
-
-User and group membership information may be private, so determining who is allowed to make GMS search calls must be considered when implementing a GMS service.  A GMS implementation may insist that GMS search calls must be made by a certain privileged account only.  This is a reasonable approach when the service is only used with a single organization, but would require the distribution of those privileged credentials to any external sites wishing to use it.
-
-Alternatively, a GMS service could have a policy where only the user who is the subject of the membership assertions is allowed to make the GMS search calls.  This approach lends itself well to external interoperability because there need not be any sharing of credentials or trust arrangements between sites -- it is always only the user who makes the service calls, even when they are transitive.  This is the approach recommended in the  IVOA credential delegation protocol \citep{2010ivoa.spec.0218P}.  So, aside from the architectural benefits of employing this pattern, there are some information privacy concerns that are addressed.
-
 \subsection{Groups of Groups}
+\label{subsec:groupsofgroups}
 
 It may be functionally attractive to support groups within groups.  If this is implemented, then the service must ensure that this representation is reflected by the service API.  For example, if an isMember(g) call is made, and the group 'g' is a group within another group in which the user is a member, then the service must return true.  The fact that the service supports groups within groups is not exposed through the search API, but the API does not prohibit such an implementation.
 
-If one of the contained groups actually exists at another GMS instance, perhaps outside of the organization, then the service must transitively query that service to determine group membership.
+If one of the contained groups exists at another GMS instance, perhaps outside of the organization, then the service may transitively query that service to determine group membership, taking care to avoid a loop caused by groups being members of each other.
 
 \appendix
 
 \section{Changes from Previous Versions}
+\label{sec:changehistory}
 
 \subsection{Changes from WD-GMS-1.0-20190506}
 \begin{itemize}
 \item{General text changes for clarification in abstract and sections 1, 3}
-\item{Removed support for identifying the 'target user' of a GMS call with id parameters.  The 'target user' is now always the user making the REST API call to GMS.}
+\item{Removed support for identifying the 'target user' of a GMS call with id parameters.  The 'target user' is now always the user making the API call to GMS.}
 \item{Added new sub-section: GMS and Credential Delegation}
 \end{itemize}
 
