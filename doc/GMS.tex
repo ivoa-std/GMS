@@ -127,8 +127,6 @@ When looking at a system that has proprietary resources that need to be protecte
 
 GMS only describes item 2, the \emph{authorization check}, though it acknowledges that step 1, \emph{granting and revoking of access} is a part of the authorization process.
 
-With these phases in mind and with the use cases defined, we can state that the goals of authorization are:
-
 \section{Groups}
 
 \subsection{Why Groups?}
@@ -240,8 +238,6 @@ It is the authenticated user (the user making the REST call) who is the subject 
 If the user cannot be identified from the call because they have not authenticated, the service must respond with HTTP 403 (Forbidden).  The response message should indicate that authentication is required to use the service.
 
 If an authenticated user could not be identitfied from the HTTP request the service must response with HTTP 400 (Bad Request).  The response message should indicate that the user is unknown to the system.
-
-\end{itemize}
 
 \subsection {Search Examples}
 \label{subsec:examples}
