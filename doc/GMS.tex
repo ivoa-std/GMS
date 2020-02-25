@@ -77,24 +77,16 @@ IVOA architecture \citep{note:VOARCH}.
 
 GMS can be used by any software that needs to check, for authorization purposes, whether a user is a member of group.  Because of this general purpose functionality, GMS slices through all IVOA standards and lies in the middle of the SHARING technical resource in the IVOA architecture diagram.  Indeed, GMS allows for the sharing of proprietary resources to a limited audience.
 
-\subsection{Use Cases}
-\label{subsec:usecases}
+\subsection{Scope}
 
-Aside from the main use case of restricting access to proprietary resources, GMS supports a number of other use cases, of both the user and system variety.
+When looking at a system that has proprietary resources that need to be protected, it is clear that there are two distinct phases to authorization:  the assignment of the rules protecting the resources, and the attempts by various users to gain access to those resources.  They are described here:
 
-\paragraph{Proprietary information} Restricting access to proprietary resources to certain users.
+\begin{enumerate}
+\item The owner(s) of a resource may, at any time, change the rules by which a resource may be accessed. This is the \emph{granting and revoking of access}.
+\item When users try to access resources, the granting rules for that resource are evaluated at runtime. This is the \emph{authorization check}.
+\end{enumerate}
 
-\paragraph{Homogeneity} Using the same mechanism to control access to proprietary resources in a data centre or in multiple data centres.
-
-\paragraph{Scalability} A distributed mechanism that scales linearly with the resources being protected.
-
-\paragraph{Remotely managing access} A project may wish to control access to resources that reside externally.
-
-\paragraph{Access rule sharing} A project may consist of a variety of resources that can be all managed by the same access rule: group membership certification.
-
-\paragraph{Extending the services of a data centre} A project that has hosted data and metadata at a data centre may wish to create value-added services outside of the data centre itself.  If some of the data or metadata is proprietary, the extended services may need to determine if a user is allowed to perform certain action on that data or metadata.  A remote GMS instance can be used in this way.
-
-\paragraph{Cooperating institutes} Two or more institutes may work together on a single project that involves proprietary resources and would benefit from a single, standard mechanism for protecting those resources.
+GMS only describes item 2, the \emph{authorization check}, though it acknowledges that step 1, \emph{granting and revoking of access} is a part of the authorization process.
 
 \subsection{Definitions}
 
@@ -116,16 +108,24 @@ Aside from the main use case of restricting access to proprietary resources, GMS
 
 \paragraph{Owner} A user or group of users who may grant or revoke access to a specific resource.
 
-\section{Scope}
+\subsection{Usage Scenarios}
+\label{subsec:usecases}
 
-When looking at a system that has proprietary resources that need to be protected, it is clear that there are two distinct phases to authorization:  the assignment of the rules protecting the resources, and the attempts by various users to gain access to those resources.  They are described here:
+Aside from the main use case of restricting access to proprietary resources, GMS supports a number of other use cases, of both the user and system variety.
 
-\begin{enumerate}
-\item The owner(s) of a resource may, at any time, change the rules by which a resource may be accessed. This is the \emph{granting and revoking of access}.
-\item When users try to access resources, the granting rules for that resource are evaluated at runtime. This is the \emph{authorization check}.
-\end{enumerate}
+\paragraph{Proprietary information} Restricting access to proprietary resources to certain users.
 
-GMS only describes item 2, the \emph{authorization check}, though it acknowledges that step 1, \emph{granting and revoking of access} is a part of the authorization process.
+\paragraph{Homogeneity} Using the same mechanism to control access to proprietary resources in a data centre or in multiple data centres.
+
+\paragraph{Scalability} A distributed mechanism that scales linearly with the resources being protected.
+
+\paragraph{Remotely managing access} A project may wish to control access to resources that reside externally.
+
+\paragraph{Access rule sharing} A project may consist of a variety of resources that can be all managed by the same access rule: group membership certification.
+
+\paragraph{Extending the services of a data centre} A project that has hosted data and metadata at a data centre may wish to create value-added services outside of the data centre itself.  If some of the data or metadata is proprietary, the extended services may need to determine if a user is allowed to perform certain action on that data or metadata.  A remote GMS instance can be used in this way.
+
+\paragraph{Cooperating institutes} Two or more institutes may work together on a single project that involves proprietary resources and would benefit from a single, standard mechanism for protecting those resources.
 
 \section{Groups}
 
@@ -337,10 +337,11 @@ If one of the contained groups exists at another GMS instance, perhaps outside o
 
 \subsection{Changes from WD-GMS-1.0-20190506}
 \begin{itemize}
-\item{General text changes for clarification in abstract and sections 1, 3}
+\item{General text changes for clarification in abstract and document body}
 \item{Removed support for identifying the 'target user' of a GMS call with id parameters.  The 'target user' is now always the user making the API call to GMS.}
 \item{Added new sub-section: GMS and Credential Delegation}
-\item{Section 2 renamed from 'Authorization Requirements' to 'Scope'}
+\item{Section 'Authorization Requirements' renamed to 'Scope'}
+\item{Section 'Use Cases' renamed to 'Usage Scenarios'}
 \end{itemize}
 
 \subsection{Changes from WD-GMS-1.0-20190329}
