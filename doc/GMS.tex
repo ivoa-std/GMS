@@ -20,7 +20,7 @@
 \begin{document}
 \begin{abstract}
 
-The Group Membership Service (GMS) specification describes a service interface for determining whether a user is a member of a group.  Membership information can be used to protect access to proprietary resources.  When an authorization decision is needed (whether to grant or deny access to a proprietary resource), a call to GMS can be made to see if the requesting user is a member of the group assigned to protect the resource in question.  Examples of proprietary resources are wide ranging but include: observation data and metadata and scarce or limited services and infrastructure.  Because this specification details how a single group can protect multiple, potentially distributed, resources, it allows for the representation of teams with common authorization rights.  The members of such teams can span multiple organizations but can be managed within a single service.  In this way, GMS offers an interoperable, flexible, and scalable mechanism for sharing proprietary assets with a potential dynamic set of team members.
+The Group Membership Service (GMS) specification describes a service interface for determining whether a user is a member of a group.  Membership information can be used to protect access to proprietary resources.  When an authorization decision is needed (whether to grant or deny access to a proprietary resource), a call to GMS can be made to see if the requesting user is a member of the group assigned to protect the resource in question.  Examples of proprietary resources are wide ranging but include: observation data and metadata and scarce or limited services and infrastructure.  Because this specification details how a single group can protect multiple, potentially distributed, resources, it allows for the representation of teams with common authorization rights.  The members of such teams can span multiple organizations but can be managed within a single service.  In this way, GMS offers an interoperable, flexible, and scalable mechanism for sharing proprietary assets with a potentially dynamic set of team members.
 
 \end{abstract}
 
@@ -59,7 +59,7 @@ Programs create higher level products such as catalogs and images.  On many occa
 
 Many organizations have internal, custom services with private or sensitive data.  Similarily, organizations are using TAP to to access relational data that serves only internal or operational purposes and should not be exposed to the general public.
 
-In these ways and others, proprietary resources exist.  For these to be made available to those with authorization, we require a consistent way of performing authorization checks.
+In these ways and others, proprietary resources exist.  For these to be made available to those with authorization, we require a consistent way of performing authorization checks within and between organizations.
 
 \subsection{Role within the VO Architecture}
 \label{subsec:roleinarch}
@@ -116,7 +116,7 @@ Aside from the main use case of restricting access to proprietary resources, GMS
 
 \paragraph{Owner} A user or group of users who may grant or revoke access to a specific resource.
 
-\section{Authorization Requirements}
+\section{Scope}
 
 When looking at a system that has proprietary resources that need to be protected, it is clear that there are two distinct phases to authorization:  the assignment of the rules protecting the resources, and the attempts by various users to gain access to those resources.  They are described here:
 
@@ -125,15 +125,9 @@ When looking at a system that has proprietary resources that need to be protecte
 \item When users try to access resources, the granting rules for that resource are evaluated at runtime. This is the \emph{authorization check}.
 \end{enumerate}
 
-With these phases in mind and with the use cases defined, we can state that the goals of authorization are:
+GMS only describes item 2, the \emph{authorization check}, though it acknowledges that step 1, \emph{granting and revoking of access} is a part of the authorization process.
 
-\begin{itemize}
-\item To allow for restricted access to certain resources: only a certain set of individuals may access certain resources.
-\item To allow certain individuals to set the access rules on resources.  The owner(s) of the resources need to manage the access rules.
-\item To be able to re-use granting rules between resources.  Projects must authorize access to a variety of proprietary resources.
-\item To be able manage granting rules at a single location.  Projects should not have to update each resource on a change to a re-used grant.
-\item To be able to reference remote granting rules.  Proprietary resources should not be confined to a single institution.
-\end{itemize}
+With these phases in mind and with the use cases defined, we can state that the goals of authorization are:
 
 \section{Groups}
 
@@ -157,7 +151,7 @@ Systems must use the information in the group identifier to determine if the use
 
 A \emph{group identifier} is used to uniquely and universally identify individual groups.  They are attached to proprietary resources for the purpose of referencing the group (or groups) whose members are authorized to access that resource.  When a system needs to do an authorization check because a request for access is being made, it can make the decision based on the response of a membership call to a GMS service.  With the help of an IVOA Registry, the system has all the information it needs within the group identifier to locate the associated GMS service and formulate the REST call to that service for the membership check.
 
-Group identifiers are IVOA Identifiers (IVOIDs) \citep{2016ivoa.spec.0523D}.  This means they can be used to look up the underlying GMS service in an IVOA registry (as is explained in the IVOA Identifiers document).  Group names are specified in the \emph{query} part of the IVOID and are mandatory in group identifiers.  So, group identifiers must conform to all the rules of IVOIDs and also MUST include the \emph{query} part of an IVOID for the group name.
+Group identifiers are IVOA Identifiers (IVOIDs) \citep{2016ivoa.spec.0523D}.  This means they can be used to look up the underlying GMS service in an IVOA registry (as is explained in the IVOA Identifiers document).  Group names are specified in the \emph{query} part of the IVOID and are mandatory in group identifiers.  So, group identifiers must conform to all the rules of IVOIDs and also MUST include the \emph{query} part of an IVOID representing the group name.
 
 Below is an example of a valid and typical group identifier:
 
@@ -172,7 +166,7 @@ There are two ways to resolve the associated GMS service URL:  lookup the docume
 \item{intf\_role} - Always '\emph{std}', to indicate a standard service is being queried for.
 \end{itemize}
 
-and one optional constraint, \emph{security\_method\_id}, used to identify how clients can authenticate to the GMS service.  To find a GMS service that does not require authorization, the value of the security\_method\_id constraint would be NULL.  However, since anonymously accessible GMS services are not likely to exist (see section \ref{subsec:infopriv}), the query should either:
+and one optional constraint, \emph{security\_method\_id}, used to identify how clients can authenticate to the GMS service.  To find a GMS service that does not require authorization, the value of the security\_method\_id constraint would be NULL.  However, since anonymously accessible GMS services are not likely to exist (see section \ref{subsec:creddel}), the query should either:
 
 \begin{itemize}
 \item include a desired security\_method\_id in the where clause, as specified by the IVOA Single-Sign-On Profile \citep{2017ivoa.spec.0524T}, or;
@@ -229,26 +223,24 @@ Within this capability, there are two functions and associated endpoints as desc
 \begin{tabular}{l l}
 \textbf{Function} & \textbf{Endpoint} \\
 \hline
-boolean isMember(Group, User) & GET /search/\{group\} \\
-list<Group> getMemberships(User) & GET /search \\
+boolean isMember(Group, User) & GET /\emph{search}/\{group\} \\
+list<Group> getMemberships(User) & GET /\emph{search} \\
 \hline
 \end{tabular}
 \vspace{3mm}
 
 Where \emph{search} represents the \xmlel{access\_url} from the RegTAP call and \emph{\{group\}} is the groupName part of a Group Identifier.
 
-For a successful HTTP GET to \xmlel{/search/\{group\}}, the service shall respond with HTTP 200 (OK).  If the user is a member of \xmlel{\{group\}}, the service must repeat the name of the group (ending with a newline as a CRLF\footnote{Carriage Return character (ASCII 13) plus a Line Feed character (ASCII 10)}) in the response body in text/plain format.  If the user is not a member of the group, or if the user is not recognized, or if the group is not recognized, the service must return an empty response body.
+For a successful HTTP GET to \xmlel{/search/\{group\}}, the service shall respond with HTTP 200 (OK).  If the user is a member of \xmlel{\{group\}}, the service must repeat the name of the group (ending with a newline as a CRLF\footnote{Carriage Return character (ASCII 13) plus a Line Feed character (ASCII 10)}) in the response body in \emph{text/plain} format.  If the user is not a member of the group, or if the group is not recognized, the service must return an empty response body.
 
 A successful HTTP GET to \xmlel{/search} shall return HTTP 200 (OK) with a list of the groupNames in which the user is a member in the response body.  The response must again have a Content-Type of \emph {text/plain}.  Each group (even the last) must end with a CRLF.  If the user is not a member of any groups, or if the user is not recognized, the response body must be empty.
 
-It is the authenticated user (the user making the REST call) who is the subject of the of the membership question.  This user's identity is determined by one of the authentication mechanisms described in the IVOA Single-Sign-On Profile.  If the user cannot be identified from the call because they have not authenticated, the service must respond with HTTP 400 (Bad Request).
+It is the authenticated user (the user making the REST call) who is the subject of the of the membership question.  This user's identity is determined by one of the authentication mechanisms described in the IVOA Single-Sign-On Profile.
 
-For an unsuccessful HTTP GET to \xmlel{/search/\{group\}} or \xmlel{/search}, the service must respond with the appropriate HTTP response code.  Some non-200 response codes and the reason for their response are:
+If the user cannot be identified from the call because they have not authenticated, the service must respond with HTTP 403 (Forbidden).  The response message should indicate that authentication is required to use the service.
 
-\begin{itemize}
-\item{400} - If an authenticated user could not be identitfied from the HTTP request.  The response message should indicate that the user is unknown to the system.
-\item{403} - If the calling user has not authenticated.  The response message should indicate that the user must authenticate to use the service.
-\item{500} - A service operation failure.  
+If an authenticated user could not be identitfied from the HTTP request the service must response with HTTP 400 (Bad Request).  The response message should indicate that the user is unknown to the system.
+
 \end{itemize}
 
 \subsection {Search Examples}
@@ -313,11 +305,11 @@ User and group membership information may be considered private, so determining 
 
 This rule also means that the caller of GMS must use the credentials (proxy certificate, token, etc..) of the target user.  Although users may themselves call GMS for membership information it is generally not very useful in their hands.  The target use case is for programmatic systems to call GMS for authorization checks.  So, those systems must have access to the target user's credentials.  This is accomplished through use of the IVOA Credential Delegation Protocol \citep{2010ivoa.spec.0218P}.
 
-An alternative to this approach, which was thoroughly considered, is to also allow the use of privileged credentials to make GMS calls.  That is: allow the set of systems that need to do authorization checks to make GMS calls for any target user.  There are a number of problems with this.
+An alternative to this approach, which was thoroughly considered, is to also allow the use of privileged credentials to make GMS calls.  That is: allow the set of systems that need to do authorization checks to make GMS calls for any target user.  There are a number of complications with this approach.
 
 New systems that need to do authorization checks require authorization to make those calls so would have to be added to a set of rules.  This is a maintenance step that can be avoided.  When there is a chain of privileged service calls that need to be made, the complexity of mapping and maintaining those rules increases quickly.  This complexity is compounded when needing to interoperate with external GMS instances.
 
-Another problem with making external GMS calls with privileged accounts is the need for a trust arrangement between the hosts.  Organizations would need to ask each other to allow GMS calls to work for certain privileged accounts.
+Another problem with allowing external GMS calls with privileged accounts is the need for a trust arrangement between the hosts.  Organizations would need to ask each other to allow GMS calls to work for certain privileged accounts.
 
 When service calls are always made by the originating user, then services such as GMS only have to concern themselves with the caller of the service, so the complexity and potential for error is much reduced.  Information privacy is easily controlled when only the user may see membership information.
 
@@ -329,8 +321,8 @@ When service calls are always made by the originating user, then services such a
 An implementation of GMS requires a system that associates users with zero or more groups, some options include:
 
 \begin{itemize}
-\item Via Grouper (groups in MySQL, users in LDAP) \footnote{https://www.internet2.edu/products-services/trust-identity/grouper/}
-\item By using LDAP only with group membership plugins.
+\item Grouper\footnote{https://www.internet2.edu/products-services/trust-identity/grouper/} (groups in MySQL\footnote{https://mysql.com}, users in LDAP\footnote{Lightweight Directory Access Protocol})
+\item By using LDAP only (some implementations require plugins to support groups)
 \item Through a relational database.
 \item A VOSpace implementation: It is conceivable that VOSpace could be used to implement GMS, where ContainerNodes represent groups and DataNodes represent users.
 \end{itemize}
@@ -352,6 +344,7 @@ If one of the contained groups exists at another GMS instance, perhaps outside o
 \item{General text changes for clarification in abstract and sections 1, 3}
 \item{Removed support for identifying the 'target user' of a GMS call with id parameters.  The 'target user' is now always the user making the API call to GMS.}
 \item{Added new sub-section: GMS and Credential Delegation}
+\item{Section 2 renamed from 'Authorization Requirements' to 'Scope'}
 \end{itemize}
 
 \subsection{Changes from WD-GMS-1.0-20190329}
