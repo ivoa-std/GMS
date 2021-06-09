@@ -213,7 +213,7 @@ The Group Membership Service defines a RESTful API \citep{fielding00} that allow
 
 As explained in \ref{subsec:groupids}, the combination of this standard ID and a serviceID (extracted from the group identifier) results in an \xmlel{access\_url}.
 
-An HTTP GET to the \xmlel{access\_url} returns a list of group names in which the calling user is a member.  One or more \emph{group} query parameters may be included in the HTTP GET.  If any \emph{group} parameters are included, the search is to be limited to the set of groups identified by those parameters.  If no \emph{group} parameters are included, all groups known to the service must be checked for membership.  Thus, the inclusion of \emph{group} parameters changes (reduces) the scope of the membership search.
+An HTTP GET to the \xmlel{access\_url} returns a list of group names in which the calling user is a member.  One or more \emph{group} query parameters may be included in the HTTP GET.  If any \emph{group} parameters are included, the search is to be limited to the union of groups identified by those parameters.  If no \emph{group} parameters are included, all groups known to the service must be checked for membership.  Thus, the inclusion of \emph{group} parameters changes (reduces) the scope of the membership search.
 
 The value of each \emph{group} parameter is the groupName part of a Group Identifier.
 
@@ -238,7 +238,7 @@ A VOSpace service receives a request from a user read a node that has the group-
 ivo://authority.example.com/gms/instance1?my-collaboration
 \end{verbatim}
 
-The service resolves the Group URI to the URL hosting the associated GMS search capability via a registry lookup:
+The VOSpace service resolves the Group URI to a URL hosting the associated Group Membership Service as per the steps outlined in section \ref{subsec:groupids}:
 
 \begin{verbatim}
 https://server.example.com/groupService/search
@@ -247,14 +247,20 @@ https://server.example.com/groupService/search
 To authorize the user, the VOSpace service queries the GMS search service using the user's delegated credentials.  Since it is only interested in the single group, the \emph{group} parameter is used:
 
 \begin{verbatim}
-HTTP GET to https://server.example.com/gmsService/search?group=my-collaboration
+https://server.example.com/gmsService/search?group=my-collaboration
 \end{verbatim}
 
-The GMS service identifies the user, consults its group membership information, and returns a response code of 200 with the string \emph{my-collaboration} (followed by CRLF) written to the response body when confirming the user is a member of group 'my-collaboration'.
+The GMS service identifies the user and determines that the user is a member of group 'my-collaboration'.  It then returns a response code of 200 (OK) with the string \emph{my-collaboration} (followed by CRLF) written to the response body.
 
 \begin{verbatim}
 my-collaboration
 \end{verbatim}
+
+After receiving this response, the VOSpace service concludes the user is a member of group allowed to read the node and proceeds with the user's request.
+
+If the user were not a member of 'my-collaboration', the GMS service would return 200 (OK) with an empty response body.  The VOSpace service would then conclude the user cannot read the node and return a 403 (Permission Denied).
+
+In both cases the Content-type of the GMS response is set to 'text/plain'.
 
 \paragraph{Example 2 - Group access to a service}
 
@@ -265,11 +271,11 @@ ivo://authority.example.com/gms/instance1?project-group-1
 ivo://authority.example.com/gms/instance1?project-group-2
 \end{verbatim}
 
-When a user calls this protected service, the service needs to authorize use by making the following call to the associated GMS.
+When a user calls this protected service, the service authorizes use by making the following call to the associated GMS.
 
 \begin{verbatim}
-HTTP GET to
-https://server.example.com/gmsService/search?group=project-group-1&group=project-group-2
+https://server.example.com/gmsService/search?
+  group=project-group-1&group=project-group-2
 \end{verbatim}
 
 The service targets only the two groups as this is the only membership in which it is interested.  GMS determines that the user is a member of group=project-group-2 so returns a 200 response with a text/plain body:
@@ -283,10 +289,10 @@ project-group-2
 A user issues an ADQL query to a table with row-level authorization in a TAP service.  A read-group column defines which group is allowed to read that row.  The first row that is encountered with a non-null read-group has value:
 
 \begin{verbatim}
-ivo://authority.example.com/gms/instance1?my-other-collaboration
+ivo://authority.example.com/gms/instance1?my-collaboration
 \end{verbatim}
 
-In anticipation of more rows to follow, and to avoid needing to make multiple calls to GMS, the TAP service asks for all the user's groups when the first protected row is encountered.  This cached group information can be applied to all subsequent rows processed.  Again, the service uses the end user's delegated credentials in the search call.
+In anticipation of more rows to follow, and to avoid needing to make multiple calls to GMS, the TAP service asks for all the user's group memberships when the first protected row is encountered.  This cached group information can be applied to all subsequent rows processed.  Again, the service uses the end user's delegated credentials in the search call.
 
 \begin{verbatim}
 HTTP GET to
@@ -301,22 +307,22 @@ my-other-collaboration
 my-thrid-collaboration
 \end{verbatim}
 
-The TAP service caches this group membership information for the lifetime of the request so that it can be used if necessary when checking other rows.  If a read-group entry with a different \emph{registry part} of the group identifier is encountered, the TAP service must call that GMS service too and add the list of groups to its cache.
+The TAP service caches this group membership information for the lifetime of the request so that it can be used if necessary when checking other rows.  If a Group URI with a different \emph{authority} is encountered, the TAP service must call that GMS service too and add the list of groups from that authority to its cache.
 
 \subsection {GMS and Credential Delegation}
 \label{subsec:creddel}
 
 User and group membership information may be considered private, so determining who is allowed to make GMS search calls is an important consideration.  This is part of the reason why the specification only allows for group membership checks to be made by the user whose membership is being checked (the 'target user').  This rule ensures that only the target user can see their group membership information.
 
-This rule also means that the caller of GMS must use the credentials (proxy certificate, token, etc..) of the target user.  Although users may themselves call GMS for membership information it is generally not very useful in their hands.  The target use case is for programmatic systems to call GMS for authorization checks.  So, those systems must have access to the target user's credentials.  This is accomplished through use of the IVOA Credential Delegation Protocol \citep{2010ivoa.spec.0218P}.
+This rule also means that the caller of GMS must use the credentials (proxy certificate, token, etc..) of the target user.  Although users may themselves call GMS for membership information it is generally not very useful to them.  The target use case is for programmatic systems to call GMS for authorization checks.  So, those systems must have access to the target user's credentials.  This is accomplished through use of the IVOA Credential Delegation Protocol \citep{2010ivoa.spec.0218P}.
 
-An alternative to this approach, which was thoroughly considered, is to also allow the use of privileged credentials to make GMS calls.  That is: allow the set of systems that need to do authorization checks to make GMS calls for any target user.  There are a number of complications with this approach.
+An alternative to this approach, which was considered, is to also allow the use of privileged credentials to make GMS calls.  That is: allow the set of systems that need to do authorization checks to make GMS calls for any target user.  With this there are a number of complications.
 
 New systems that need to do authorization checks require authorization to make those calls so would have to be added to a set of rules.  This is a maintenance step that can be avoided.  When there is a chain of privileged service calls that need to be made, the complexity of mapping and maintaining those rules increases quickly.  This complexity is compounded when needing to interoperate with external GMS instances.
 
 Another problem with allowing external GMS calls with privileged accounts is the need for a trust arrangement between the hosts.  Organizations would need to ask each other to allow GMS calls to work for certain privileged accounts.
 
-When service calls are always made by the originating user, then services such as GMS only have to concern themselves with the caller of the service, so the complexity and potential for error is much reduced.  Information privacy is easily controlled when only the user may see membership information.
+When service calls are always made by the original calling user, services such as GMS then only have to concern themselves with the caller of the service, so the complexity and potential for error is much reduced.  Information privacy is easily controlled when only the user may see membership information.
 
 \section {Implementation}
 
@@ -335,7 +341,7 @@ An implementation of GMS requires a system that associates users with zero or mo
 \subsection{Groups of Groups}
 \label{subsec:groupsofgroups}
 
-It may be functionally attractive to support groups within groups.  If this is implemented, then the service must ensure that this representation is reflected by the service API.  For example, if an isMember(g) call is made, and the group 'g' is a group within another group in which the user is a member, then the service must return true.  The fact that the service supports groups within groups is not exposed through the search API, but the API does not prohibit such an implementation.
+It may be functionally attractive to support groups within groups.  If this is implemented, then the service must ensure that this representation is reflected by the GMS service API.  For example, consider the situation where a user is a member of group G2 and group G2 is a member of group G1.  On a membership call to group G1 made by this user, the service must respond with group G1 (meaning yes: the user is a member of group G1).  The fact that the service supports groups within groups is not exposed through the search API, but the API does not prohibit such an implementation.  If the call was a memberhip check to group G2, the service would respond with G2 in the response body.
 
 If one of the contained groups exists at another GMS instance, perhaps outside of the organization, then the service may transitively query that service to determine group membership, taking care to avoid a loop caused by groups being members of each other.
 
@@ -343,6 +349,13 @@ If one of the contained groups exists at another GMS instance, perhaps outside o
 
 \section{Changes from Previous Versions}
 \label{sec:changehistory}
+
+\subsection{Changes from WD-GMS-1.0-20200210}
+\begin{itemize}
+\item{API modification: groups identified by query parameter, not path element}
+\item{API modification: multiple group parameters to allow clients to minimize required GMS calls}
+\item{Update examples with to match API changes}
+\end{itemize}
 
 \subsection{Changes from WD-GMS-1.0-20190506}
 \begin{itemize}
