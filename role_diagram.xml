@@ -1,0 +1,29 @@
+<!--
+Document authors (ivoatex maintainers have different rules):
+
+* svn cp this file to role_diagram.xml, and then:
+
+* Remove all <rec> elements in there referring to standards not related
+  to the current one,
+
+* change the tag name for the current one from rec to thisrec
+
+* make role_diagram.pdf
+
+For the time being, keep both role_diagram.pdf and role_diagram.svg as
+created by this in the VCS.  This helps document builds on machines
+with missing dependencies.
+-->
+
+<archdiag xmlns="http://ivoa.net/archdiag">
+	<rec name="VOResource" x="64.5" y="155" w="71"/>
+	<rec name="RegTAP" x="76" y="180" w="48"/>
+
+	<rec name="Identifiers" x="125" y="425" w="60"/>
+
+    <rec name="SSO" x="450" y="115" w="31"/>
+	<rec name="CDP" x="500" y="115" w="31"/>
+	<thisrec name="GMS" x="534" y="460" w="32"/>
+	<rec name="VOSI" x="568" y="435" w="34"/>
+
+</archdiag>
