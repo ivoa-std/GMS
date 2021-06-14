@@ -16,14 +16,14 @@ with missing dependencies.
 -->
 
 <archdiag xmlns="http://ivoa.net/archdiag">
-	<rec name="VOResource" x="55" y="155"/>
-	<rec name="RegTAP" x="55" y="180"/>
+	<rec name="VOResource" x="64.5" y="155" w="71"/>
+	<rec name="RegTAP" x="76" y="180" w="48"/>
 
-	<rec name="Identifiers" x="125" y="425"/>
+	<rec name="Identifiers" x="125" y="425" w="60"/>
 
-	<rec name="SSO" x="270" y="120"/>
-	<rec name="CDP" x="570" y="115"/>
-	<thisrec name="GMS" x="505" y="460"/>
-	<rec name="VOSI" x="540" y="435"/>
+    <rec name="SSO" x="450" y="115" w="31"/>
+	<rec name="CDP" x="500" y="115" w="31"/>
+	<thisrec name="GMS" x="534" y="460" w="32"/>
+	<rec name="VOSI" x="568" y="435" w="34"/>
 
 </archdiag>
