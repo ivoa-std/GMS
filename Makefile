@@ -17,7 +17,7 @@ DOCTYPE = PR
 SOURCES = $(DOCNAME).tex role_diagram.pdf
 
 # List of pixel image files to be included in submitted package
-FIGURES = role_diagram.svg
+FIGURES = role_diagram.svg role_diagram.pdf
 
 # List of PDF figures (for vector graphics)
 VECTORFIGURES =

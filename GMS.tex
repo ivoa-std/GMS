@@ -158,7 +158,7 @@ Below is an example of a valid and typical group identifier with group name \emp
 ivo://authority.example.com/groupService?mygroup
 \end{verbatim}
 
-There are two ways to resolve the associated GMS service URL:  lookup the document associated with \emph{ivo://authority.example.com/groupService} in the registry; or, issue a RegTAP (\citep{2014ivoa.spec.1208D}) query for relevant elements of that document.  Here we explain the RegTAP approach.  Following the recommendations in that specification, the query would be done with three necessary constraints in the where clause:
+There are two ways to resolve the associated GMS service URL:  lookup the document associated with \emph{ivo://authority.example.com/groupService} in the registry; or, issue a RegTAP \citep{2014ivoa.spec.1208D} query for relevant elements of that document.  Here we explain the RegTAP approach.  Following the recommendations in that specification, the query would be done with three necessary constraints in the where clause:
 \begin{itemize}
 \item{ivoid} - The \emph{registry part} of the group identifier.
 \item{standard\_id} - The desired search feature of GMS.
@@ -171,6 +171,8 @@ and one optional constraint, \emph{security\_method\_id}, used to identify how c
 \item include a desired security\_method\_id in the where clause, as specified by the IVOA Single-Sign-On Profile \citep{2017ivoa.spec.0524T}, or;
 \item omit the constraint and iterate over the resulting rows to choose an appropriate security method.
 \end{itemize}
+
+At the time of writing, the approach the IVOA is taking to discover service authentication support is changing.  Please consult the latest version of the Single-Sign-On Profile for details.
 
 The following query will return a row for each access\_url and security\_method\_id combination.  The ivoid value is calculated by removing the query string from the group identifier.  Since we are looking to perform an \emph{is member} call, we ask for the GMS search capability, identified by the GMS search standardID (see section \ref{subsec:api}).
 
