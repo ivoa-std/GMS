@@ -203,7 +203,7 @@ https://server.example.com/gms/search & ivo://ivoa.net/sso\#token \\
 \end{tabular}
 \vspace{3mm}
 
-To then perform the group membership query on any of these URLs, the service would formulate a REST call as defined by the GMS Search API.  Since it required that the calls be made \emph{as the user}, the call, in this example, must be made with either the user's delegated client certificate or the user's delegated authorization token with the appropriate scope.
+To then perform the group membership query on any of these URLs, the service would formulate a REST call as defined by the GMS Search API.  Since it is required that the calls be made \emph{as the user}, the call, in this example, must be made with either the user's delegated client certificate or the user's delegated authorization token with the appropriate scope.
 
 \section{GMS Search API}
 
@@ -309,7 +309,7 @@ The GMS service returns HTTP 200 and all the groups in which the calling user is
 \begin{verbatim}
 my-collaboration
 my-other-collaboration
-my-thrid-collaboration
+my-third-collaboration
 \end{verbatim}
 
 The TAP service caches this group membership information for the lifetime of the request so that it can be used if necessary when checking other rows.  If a Group URI with a different \emph{authority} is encountered, the TAP service must call that GMS service too and add the list of groups from that authority to its cache.
