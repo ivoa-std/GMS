@@ -1,6 +1,9 @@
 \documentclass[11pt,a4paper]{ivoa}
 \input tthdefs
 
+\lstloadlanguages{SQL}
+\lstset{flexiblecolumns=true,basicstyle=\ttfamily,showstringspaces=False}
+
 \title{Group Membership Service}
 
 \ivoagroup{Grid and Web Services}
@@ -58,7 +61,7 @@ Most facilities have a period of time in which only the Principal Investigator a
 
 Programs create higher level products such as catalogs and images.  On many occasions, they must be accessible to only those who are authorized.
 
-Many organizations have internal, custom services with private or sensitive data.  Similarily, organizations are using TAP to to access relational data that serves only internal or operational purposes and should not be exposed to the general public.
+Many organizations have internal, custom services with private or sensitive data.  Similarily, organizations are using TAP to access relational data that serves only internal or operational purposes and should not be exposed to the general public.
 
 In these ways and others, proprietary resources exist.  For these to be made available to those with authorization, we require a consistent way of performing authorization checks within and between organizations.
 
@@ -176,16 +179,16 @@ At the time of writing, the approach the IVOA is taking to discover service auth
 
 The following query will return a row for each access\_url and security\_method\_id combination.  The ivoid value is calculated by removing the query string from the group identifier.  Since we are looking to perform an \emph{is member} call, we ask for the GMS search capability, identified by the GMS search standardID (see section \ref{subsec:api}).
 
-\begin{verbatim}
-    SELECT access_url, security_method_id
-    FROM rr.interface
-    NATURAL JOIN rr.capability
-    NATURAL JOIN rr.resource
-    WHERE
-      ivoid = 'ivo://authority.example.com/groupService'
-      AND standard_id = 'ivo://ivoa.net/std/gms#search-1.0'
-      AND intf_role='std'
-\end{verbatim}
+\begin{lstlisting}[language=SQL,xleftmargin=2em]
+SELECT access_url, security_method_id
+FROM rr.interface
+NATURAL JOIN rr.capability
+NATURAL JOIN rr.resource
+WHERE
+  ivoid = 'ivo://authority.example.com/groupService'
+  AND standard_id = 'ivo://ivoa.net/std/gms#search-1.0'
+  AND intf_role='std'
+\end{lstlisting}
 
 This would result in one or more access URLs capable of performing a GMS search on the group 'groupName' with its corresponding security method support.  For example, it could return two rows to the same GMS instance with support for different security methods:
 
