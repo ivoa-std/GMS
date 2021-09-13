@@ -45,7 +45,7 @@ infrastructure that enable VO applications.
 
 \section{Introduction}
 
-Through standard IVOA protocols, many astronomy data centres and institutes offer users access to datasets through Datalink (Datalink \citep{2015ivoa.spec.0617D}) and SODA (Server-side Operations for Data Access \citep{2017ivoa.spec.0517B}, etc), metadata and catalogs through TAP (\citep{2010ivoa.spec.0327D}), and storage through VOSpace (\citep{2018ivoa.spec.0621G}).  There are also many instances of custom access services to astronomy resources.  In certain cases the information within these services is proprietary -- it is only allowed to be accessed by certain individuals.  Due to the wide variety and inherently institute-specific set of rules that may define how the information is proprietary, it is beneficial to the owners and maintainers of the rules to have a standard way of describing who has access to what resources.  Additionally, the rules describing resource access may be determined by an entity external to the holder of these resources.  To these ends, this document sets out a standard, programmatic, and interoperable method of determining whether a given user is allowed to access a given proprietary resource.
+Through standard IVOA protocols, many astronomy data centres and institutes offer users access to datasets through Datalink \citep{2015ivoa.spec.0617D} and SODA (Server-side Operations for Data Access, \citet{2017ivoa.spec.0517B}), metadata and catalogs through TAP \citep{2010ivoa.spec.0327D}, and storage through VOSpace \citep{2018ivoa.spec.0621G}.  There are also many instances of custom access services to astronomy resources.  In certain cases the information within these services is proprietary -- it is only allowed to be accessed by certain individuals.  Due to the wide variety and inherently institute-specific set of rules that may define how the information is proprietary, it is beneficial to the owners and maintainers of the rules to have a standard way of describing who has access to what resources.  Additionally, the rules describing resource access may be determined by an entity external to the holder of these resources.  To these ends, this document sets out a standard, programmatic, and interoperable method of determining whether a given user is allowed to access a given proprietary resource.
 
 The ideas presented by GMS enable data centres to do authorization checks in an interoperable fashion.  In the context of authorization, interoperability can viewed on two levels:  interoperability amongst the cooperating services \emph{within} a data centre, and interoperability \emph{between} data centres.  Because of the orthogonal nature of authorization, these amount to the same problem.
 
@@ -74,7 +74,7 @@ In these ways and others, proprietary resources exist.  For these to be made ava
 \end{figure}
 
 Fig.~\ref{fig:archdiag} shows the role this document plays within the
-IVOA architecture \citep{note:VOARCH}.
+IVOA architecture \citep{2010ivoa.rept.1123A}.
 
 GMS can be used by any software that needs to check, for authorization purposes, whether a user is a member of group.  Because of this general purpose functionality, GMS slices through all IVOA standards and lies in the middle of the SHARING technical resource in the IVOA architecture diagram.  Indeed, GMS allows for the sharing of proprietary resources to a limited audience.
 
@@ -91,7 +91,7 @@ GMS presents an interoperable solution for item 2, the \emph{authorization check
 
 \subsection{Definitions}
 
-\paragraph{Authentication} User identification through credentials or identity provider.  Refer to the IVOA Single-Sign-On Profile: Authentication Mechanisms.  \citep{2017ivoa.spec.0524T}
+\paragraph{Authentication} User identification through credentials or identity provider.  Refer to the IVOA Single-Sign-On Profile: Authentication Mechanisms  \citep{2017ivoa.spec.0524T}.
 
 \paragraph{Authorization} Making the decision of whether to grant a user permission to a given resource.  The decision usually involves knowing the user's identity obtained through authentication.
 
@@ -150,7 +150,7 @@ Systems must use the information in the group identifier to determine if the use
 
 A \emph{group identifier} is used to uniquely and universally identify individual groups.  They are attached to proprietary resources for the purpose of referencing the group (or groups) whose members are authorized to access that resource.  When a system needs to do an authorization check because a request for access is being made, it can make the decision based on the response of a membership call to a GMS service.  With the help of an IVOA Registry, the system has all the information it needs within the group identifier to locate the associated GMS service and formulate the REST call to that service for the membership check.
 
-Group identifiers are IVOA Identifiers (IVOIDs) \citep{2016ivoa.spec.0523D}.  This means they can be used to look up the underlying GMS service in an IVOA registry (as is explained in the IVOA Identifiers document).  Group names are specified in the \emph{query} part of the IVOID and are mandatory in group identifiers.  So, group identifiers must conform to all the rules of IVOIDs and also MUST include the \emph{query} part of an IVOID representing the group name.
+Group identifiers are IVOA Identifiers (IVOIDs, \citet{2016ivoa.spec.0523D}).  This means they can be used to look up the underlying GMS service in an IVOA registry (as is explained in the IVOA Identifiers document).  Group names are specified in the \emph{query} part of the IVOID and are mandatory in group identifiers.  So, group identifiers must conform to all the rules of IVOIDs and also MUST include the \emph{query} part of an IVOID representing the group name.
 
 Below is an example of a valid and typical group identifier with group name \emph{mygroup}:
 
