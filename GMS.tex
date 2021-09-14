@@ -26,7 +26,7 @@ The Group Membership Service (GMS) specification describes a service interface f
 \end{abstract}
 
 \section*{Acknowledgments}
-For the creation of this document we acknowledge the support of the Canadian Space Agency, the National Research Council Canada, the Italian National Institue of Astrophysics, and the Astronomy ESFRI and Research Infrastructure Cluster (ASTERICS).  ASTERICS is a project supported by the European Commission Framework Programme Horizon 2020 Research and Innovation action under grant agreement n. 653477.
+For the creation of this document we acknowledge the support of the Canadian Space Agency, the National Research Council Canada, the Italian National Institue of Astrophysics, and the Astronomy ESFRI and Research Infrastructure Cluster (ASTERICS).  ASTERICS was a project supported by the European Commission Framework Programme Horizon 2020 Research and Innovation action under grant agreement n. 653477.
 
 \section*{Conformance-related definitions}
 
@@ -47,7 +47,7 @@ infrastructure that enable VO applications.
 
 Through standard IVOA protocols, many astronomy data centres and institutes offer users access to datasets through Datalink (Datalink \citep{2015ivoa.spec.0617D}) and SODA (Server-side Operations for Data Access \citep{2017ivoa.spec.0517B}, etc), metadata and catalogs through TAP (\citep{2010ivoa.spec.0327D}), and storage through VOSpace (\citep{2018ivoa.spec.0621G}).  There are also many instances of custom access services to astronomy resources.  In certain cases the information within these services is proprietary -- it is only allowed to be accessed by certain individuals.  Due to the wide variety and inherently institute-specific set of rules that may define how the information is proprietary, it is beneficial to the owners and maintainers of the rules to have a standard way of describing who has access to what resources.  Additionally, the rules describing resource access may be determined by an entity external to the holder of these resources.  To these ends, this document sets out a standard, programmatic, and interoperable method of determining whether a given user is allowed to access a given proprietary resource.
 
-The ideas presented by GMS enable data centres to do authorization checks in an interoperable fashion.  In the context of authorization, interoperability can viewed on two levels:  interoperability amongst the cooperating services \emph{within} a data centre, and interoperability \emph{between} data centres.  Because of the orthogonal nature of authorization, these amount to the same problem.
+The ideas presented by GMS enable data centres to do authorization checks in an interoperable fashion.  In the context of authorization, interoperability can viewed on two levels:  interoperability amongst the cooperating services \emph{within} a data centre, and interoperability \emph{between} data centres.  The same approach is taken for both scenarios, meaning that the location of a GMS service is irrelavent. 
 
 Interoperability aside, GMS describes a simple, general, maintainable, and scalable approach to performing authorization, and so is a recommended architectural pattern for managing access to proprietary resources.
 
