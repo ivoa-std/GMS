@@ -1,0 +1,84 @@
+<ri:Resource 
+	xsi:type="vstd:Standard" 
+	created="2021-09-15T12:20:00Z" 
+	updated="2021-09-15T12:20:00Z" 
+	status="active"
+	xmlns:vr="http://www.ivoa.net/xml/VOResource/v1.0" 
+	xmlns:vstd="http://www.ivoa.net/xml/StandardsRegExt/v1.0" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:ri="http://www.ivoa.net/xml/RegistryInterface/v1.0"
+	xsi:schemaLocation="http://www.ivoa.net/xml/VOResource/v1.0
+		https://www.ivoa.net/xml/VOResource/v1.0
+	http://www.ivoa.net/xml/StandardsRegExt/v1.0
+		https://www.ivoa.net/xml/StandardsRegExt/v1.0
+	http://www.ivoa.net/xml/VOResource/v1.0
+		https://www.ivoa.net/xml/VOResource/v1.0">
+
+  <title>Group Membership Service</title>
+  <shortName>GMS</shortName>
+  <identifier>ivo://ivoa.net/std/gms</identifier> 
+  <!-- <altIdentifier>doi:Look up on ADS once your standard has made
+    it there and then update this. </altIdentifier> -->
+  <curation>
+    <publisher>IVOA</publisher>
+
+    <creator>
+      <name>major, B.</name>
+    </creator>
+    <creator>
+      <name>Dowler, P.</name>
+    </creator>
+    <creator>
+      <name>Taffoni, G.</name>
+    </creator>
+    <creator>
+      <name>Zorba, S.</name>
+    </creator>
+    <creator>
+      <name>Bertocco, S.</name>
+    </creator>
+    <creator>
+      <name>Molinaro, M.</name>
+    </creator>
+
+    <date role="update">2021-06-09</date>
+    <version>1.0</version>
+    <contact>
+      <name>IVOA Grid and Web Services WG</name>
+      <email>grid@ivoa.net</email>
+    </contact>
+  </curation>
+  <content>
+    <subject>virtual-observatories</subject>
+
+    <description>
+    	The Group Membership Service (GMS) specification describes a service
+    	interface for determining whether a user is a member of a group.
+    	Membership information can be used to protect access to proprietary
+    	resources. When an authorization decision is needed (whether to grant or
+    	deny access to a proprietary resource), a call to GMS can be made to see
+    	if the requesting user is a member of the group assigned to protect the
+    	resource in question. Examples of proprietary resources are wide ranging
+    	but include: observation data and metadata and scarce or limited services
+    	and infrastructure. Because this specification details how a single group
+    	can protect multiple, potentially distributed, resources, it allows for
+    	the representation of teams with common authorization rights. The members
+    	of such teams can span multiple organizations but can be managed within a
+    	single service. In this way, GMS offers an interoperable, flexible, and
+    	scalable mechanism for sharing proprietary assets with a potentially
+    	dynamic set of team members.
+    </description>
+    <referenceURL>https://ivoa.net/documents/GMS/</referenceURL>
+    <type>Other</type>
+  	<contentLevel>Research</contentLevel>
+  </content>
+
+  <endorsedVersion status="pr">PR-20210609</endorsedVersion>
+
+	<key>
+		<name>search-1.0</name>
+		<description>The standardID for GMS search interfaces.
+		</description>
+	</key>
+
+</ri:Resource>
