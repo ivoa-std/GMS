@@ -150,7 +150,7 @@ Systems must use the information in the group identifier to determine if the use
 
 A \emph{group identifier} is used to uniquely and universally identify individual groups.  They are attached to proprietary resources for the purpose of referencing the group (or groups) whose members are authorized to access that resource.  When a system needs to do an authorization check because a request for access is being made, it can make the decision based on the response of a membership call to a GMS service.  With the help of an IVOA Registry, the system has all the information it needs within the group identifier to locate the associated GMS service and formulate the REST call to that service for the membership check.
 
-Group identifiers are IVOA Identifiers (IVOIDs) \citep{2016ivoa.spec.0523D}.  This means they can be used to look up the underlying GMS service in an IVOA registry (as is explained in the IVOA Identifiers document).  Group names are specified in the \emph{query} part of the IVOID and are mandatory in group identifiers.  So, group identifiers must conform to all the rules of IVOIDs and also MUST include the \emph{query} part of an IVOID representing the group name.
+Group identifiers are IVOA Identifiers (IVOIDs) \citep{2016ivoa.spec.0523D}.  This means they can be used to look up the underlying GMS service in an IVOA registry (as explained below).  Group names are specified in the \emph{query} part of the IVOID and are mandatory in group identifiers.  So, group identifiers must conform to all the rules of IVOIDs and also MUST include the \emph{query} part of an IVOID representing the group name.
 
 Below is an example of a valid and typical group identifier with group name \emph{mygroup}:
 
@@ -158,11 +158,12 @@ Below is an example of a valid and typical group identifier with group name \emp
 ivo://authority.example.com/groupService?mygroup
 \end{verbatim}
 
-There are two ways to resolve the associated GMS service URL:  lookup the document associated with \emph{ivo://authority.example.com/groupService} in the registry; or, issue a RegTAP \citep{2014ivoa.spec.1208D} query for relevant elements of that document.  Here we explain the RegTAP approach.  Following the recommendations in that specification, the query would be done with three necessary constraints in the where clause:
+To obtain the access URL for a GMS service, a Registry query is performed. Using RegTAP \citep{2014ivoa.spec.1208D}, one uses the following three costraints:
+
 \begin{itemize}
-\item{ivoid} - The \emph{registry part} of the group identifier.
-\item{standard\_id} - The desired search feature of GMS.
-\item{intf\_role} - Always '\emph{std}', to indicate a standard service is being queried for.
+\item{\emph{ivoid}} - The \emph{registry part} of the group identifier.
+\item{\emph{standard\_id}} - The desired search feature of GMS.
+\item{\emph{intf\_role}} - Always '\emph{std}', to indicate a standard service is being queried for.
 \end{itemize}
 
 and one optional constraint, \emph{security\_method\_id}, used to identify how clients can authenticate to the GMS service.  To find a GMS service that does not require authorization, the value of the security\_method\_id constraint would be NULL.  However, since anonymously accessible GMS services are not likely to exist (see section \ref{subsec:creddel}), the query should either:
@@ -174,7 +175,7 @@ and one optional constraint, \emph{security\_method\_id}, used to identify how c
 
 At the time of writing, the approach the IVOA is taking to discover service authentication support is changing.  Please consult the latest version of the Single-Sign-On Profile for details.
 
-The following query will return a row for each access\_url and security\_method\_id combination.  The ivoid value is calculated by removing the query string from the group identifier.  Since we are looking to perform an \emph{is member} call, we ask for the GMS search capability, identified by the GMS search standardID (see section \ref{subsec:api}).
+The following query will return a row for each access\_url and security\_method\_id combination.  The ivoid value is calculated by removing the query string from the group identifier.  Since we are looking to perform an \emph{is member} call, we ask for the GMS search capability, identified by the GMS search standardID (see section \ref{subsec:api}). \footnote{To find a RegTap service on which to execute this query, consult http://rofr.ivoa.net/}
 
 \begin{verbatim}
     SELECT access_url, security_method_id
@@ -201,6 +202,8 @@ https://server.example.com/gms/search & ivo://ivoa.net/sso\#token \\
 \vspace{3mm}
 
 To then perform the group membership query on any of these URLs, the service would formulate a REST call as defined by the GMS Search API.  Since it required that the calls be made \emph{as the user}, the call, in this example, must be made with either the user's delegated client certificate or the user's delegated authorization token with the appropriate scope.
+
+Clients and services that will require frequent lookups of GMS services should strongly consider caching a map of group identifiers keys to access URLs values. Access URLs probably change very infrequently.  Caching would reduce the traffic on the RegTap services and improve the performance of authorization checks in general. 
 
 \section{GMS Search API}
 
