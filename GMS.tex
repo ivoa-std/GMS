@@ -223,7 +223,7 @@ For a successful HTTP GET to the search endpoint (whether \emph{group} parameter
 
 On a successful HTTP GET, the service must write the name of each of the groups in which the user is a member in the response body in \emph{text/plain} format.  Each group name (even the last) must end with a newline as a CRLF\footnote{Carriage Return character (ASCII 13) plus a Line Feed character (ASCII 10)}).  If the user is not a member of any groups within the scope of the search the service must return an empty response body.  The service should ignore any group names it does not recognize.
 
-It is the authenticated user (the user making the REST call) who is the subject of the of the membership question.  Users' identity is determined by one of the authentication mechanisms described in the IVOA Single-Sign-On Profile.  Because GMS is most useful to services with proprietary (not users themselves), users' delegated credentials will be used extensively to make GMS calls.  (See section \ref{subsec:creddel} for more information.)
+It is the authenticated user (the user making the REST call) who is the subject of the of the membership question.  Users' identity is determined by one of the authentication mechanisms described in the IVOA Single-Sign-On Profile.  Because GMS is most useful to services with proprietary information (ie. it is not users themselves), users' delegated credentials will be used extensively to make GMS calls.  (See section \ref{subsec:creddel} for more information.)
 
 If the user cannot be identified from the call because they have not authenticated (the request is anonymous), the service must respond with HTTP 401 (Unauthorized).  The response message should indicate that authentication is required to use the service.
 
