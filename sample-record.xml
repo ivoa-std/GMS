@@ -1,0 +1,52 @@
+<ri:Resource
+		created="2021-09-15T12:02:00Z"
+		updated="2021-09-15T12:02:00Z"
+		status="active"
+		xsi:type="vr:Service"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:vr="http://www.ivoa.net/xml/VOResource/v1.0"
+		xmlns:vs="http://www.ivoa.net/xml/VODataService/v1.1"
+		xmlns:ri="http://www.ivoa.net/xml/RegistryInterface/v1.0">
+  <title>CADC Group Membership Service</title>
+  <shortName>cadc-gms</shortName>
+  <identifier>ivo://cadc.nrc.ca/gms</identifier>
+
+  <curation>
+    <publisher ivo-id="ivo://cadc.nrc.ca/org"
+    	>Canadian Astronomy Data Centre</publisher>
+    <creator>
+      <name>Brian Major</name>
+    </creator>
+    <date role="updated">2021-09-15</date>
+    <contact>
+      <name>CADC helpdesk</name>
+      <address>5071 West Saanich Rd Victoria, BC, Canada V9E 2E7</address>
+      <email>support@canfar.net</email>
+    </contact>
+  </curation>
+
+  <content>
+    <subject>virtual-observatories</subject>
+    <description>
+    	The CADC Group Membership Service contains membership information for
+			Proposal Groups in all supported CADC collections, and for user-managed
+			groups in CANFAR.
+		</description>
+    <referenceURL>https://ws-cadc.canfar.net/ac</referenceURL>
+  </content>
+
+  <capability standardID="ivo://ivoa.net/std/gms#search-1.0">
+    <interface xsi:type="vs:ParamHTTP" role="std">
+      <accessURL use="full">https://ws-cadc.canfar.net/ac/search-1.0</accessURL>
+      <securityMethod standardID="ivo://ivoa.net/sso#cookie" />
+    </interface>
+    <interface xsi:type="vs:ParamHTTP" role="std">
+      <accessURL use="full">https://ws-cadc.canfar.net/ac/search-1.0</accessURL>
+      <securityMethod standardID="ivo://ivoa.net/sso#tls-with-certificate" />
+    </interface>
+    <interface xsi:type="vs:ParamHTTP" role="std">
+      <accessURL use="full">https://ws-cadc.canfar.net/ac/search-1.0</accessURL>
+      <securityMethod standardID="ivo://ivoa.net/sso#token" />
+    </interface>
+  </capability>
+</ri:Resource>
