@@ -23,6 +23,6 @@ FIGURES = role_diagram.svg role_diagram.pdf
 VECTORFIGURES =
 
 # Additional files to distribute (e.g., CSS, schema files, examples...)
-AUX_FILES =
+AUX_FILES = sample-record.xml
 
 include ivoatex/Makefile

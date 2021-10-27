@@ -1,6 +1,8 @@
 \documentclass[11pt,a4paper]{ivoa}
 \input tthdefs
 
+\usepackage{todonotes}
+
 \title{Group Membership Service}
 
 \ivoagroup{Grid and Web Services}
@@ -326,6 +328,42 @@ Another problem with allowing external GMS calls with privileged accounts is the
 
 When service calls are always made by the original calling user, services such as GMS then only have to concern themselves with the caller of the service, so the complexity and potential for error is much reduced.  Information privacy is easily controlled when only the user may see membership information.
 
+
+\section{Registering GMS Services}
+
+In this section, standard VO XML namespace prefixes apply, i.e.,
+\xmlel{vr:} correspondes to VOResource \citep{2018ivoa.spec.0625P}
+\nolinkurl{http://www.ivoa.net/xml/VOResource/v1.0}, and
+\xmlel{vs:} corresponds to VODataService \citep{2010ivoa.spec.1202P}
+\nolinkurl{http://www.ivoa.net/xml/VODataService/v1.1}.
+
+Group membership services may be registered using any suitable resource
+type, where plain VOResource \xmlel{vr:Service} records are recommended.
+
+GMS 1.0 resources MUST contain exactly one \xmlel{capability} element with a
+standard id of \nolinkurl{ivo://ivoa.net/std/gms#search-1.0}.\todo{I'd
+still be in favour of just using search, i.e., drop all versioning info
+-- MD}  More capabilities with other or no standard ids are allowed.
+
+This capability MUST contain one or more interface(s) of type
+\xmlel{vs:ParamHTTP} and a \xmlel{role} attribute set to \verb|std|, the
+\xmlel{accessURL} of which declare the GMS search endpoint as defined in
+the present document.  As dicussed in sect.~\ref{subsec:creddel}, such
+interfaces will in general define a \xmlel{securityMethod}.  When a
+service supports multiple authentication methods, it has to include
+multiple \xmlel{interface} elements.
+
+Declaring other interfaces in the \verb|gms#search| capability is
+discouraged for interoperability; no such additional interface may
+declare a \xmlel{role} of \verb|std|.  Services wishing to declare
+non-GMS interfaces (e.g., for use with non-VO standards) should do so in
+separate \xmlel{capability} elements.
+
+This way of registering enables the service discovery pattern discussed
+in sect.~\ref{subsec:groupids}.  A sample registry record is distributed
+with this specification\footnote{\auxiliaryurl{sample-record.xml}}.
+
+
 \section {Implementation}
 
 \subsection {Implementation Options}
@@ -347,10 +385,17 @@ It may be functionally attractive to support groups within groups.  If this is i
 
 If one of the contained groups exists at another GMS instance, perhaps outside of the organization, then the service may transitively query that service to determine group membership, taking care to avoid a loop caused by groups being members of each other.
 
+
 \appendix
 
 \section{Changes from Previous Versions}
 \label{sec:changehistory}
+
+\subsection{Changes from PR-1.0-20210609}
+
+\begin{itemize}
+\item Adding a section on how to register GMS services.
+\end{itemize}
 
 \subsection{Changes from WD-GMS-1.0-20200210}
 \begin{itemize}
