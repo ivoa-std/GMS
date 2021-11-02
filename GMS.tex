@@ -141,7 +141,7 @@ Why are groups a good model for authorization?  When a system needs to perform a
 
 A simple approach would be to add the identity of the user to the resource.  However, this is too restrictive as there may be multiple users who are allowed access.  So, we could instead add a list of user identities to the resource being protected.  It becomes a problem when there are two resources that need protecting by the same set of individuals.  This becomes difficult to maintain because a change in access rules (\emph{granting and revoking access}) would mean a change to multiple resources.
 
-So, it becomes clear that this list of users needs to be decoupled from the resource so that it can be referenced and shared by multiple resources.  To do so, the list must become a single entity than can be referenced by a name.  And so, we must have a named group of users.
+So, it becomes clear that this list of users needs to be decoupled from the resource so that it can be referenced and shared by multiple resources.  To do so, the list must become a single entity that can be referenced by a name.  And so, we must have a named group of users.
 
 A central repository of groups of users would introduce other problems:  a single point of failure, and the inability to partition groups of users.  Thus, the \emph{location} of the group must accompany the group reference so that it is possible to have multiple collections of groups of users and multiple associated GMS services.
 
@@ -230,7 +230,7 @@ For a successful HTTP GET to the search endpoint (whether \emph{group} parameter
 
 On a successful HTTP GET, the service must write the name of each of the groups in which the user is a member in the response body in \emph{text/plain} format.  Each group name (even the last) must end with a newline as a CRLF\footnote{Carriage Return character (ASCII 13) plus a Line Feed character (ASCII 10)}).  If the user is not a member of any groups within the scope of the search the service must return an empty response body.  The service should ignore any group names it does not recognize.
 
-It is the authenticated user (the user making the REST call) who is the subject of the of the membership question.  Users' identity is determined by one of the authentication mechanisms described in the IVOA Single-Sign-On Profile.  Because GMS is most useful to services with proprietary information (ie. it is not users themselves), users' delegated credentials will be used extensively to make GMS calls.  (See section \ref{subsec:creddel} for more information.)
+It is the authenticated user (the user making the REST call) who is the subject of the membership question.  Users' identity is determined by one of the authentication mechanisms described in the IVOA Single-Sign-On Profile.  Because GMS is most useful to services with proprietary information (ie. it is not users themselves), users' delegated credentials will be used extensively to make GMS calls.  (See section \ref{subsec:creddel} for more information.)
 
 If the user cannot be identified from the call because they have not authenticated (the request is anonymous), the service must respond with HTTP 401 (Unauthorized).  The response message should indicate that authentication is required to use the service.
 
@@ -241,7 +241,7 @@ If an authenticated user could not be identitfied from the HTTP request the serv
 
 \paragraph{Example 1 - Group access to a VOSpace Node}
 
-A VOSpace service receives a request from a user read a node that has the group-read property set to
+A VOSpace service receives a request from a user to read a node that has the group-read property set to
 
 \begin{verbatim}
 ivo://authority.example.com/gms/instance1?my-collaboration
@@ -265,7 +265,7 @@ The GMS service identifies the user and determines that the user is a member of 
 my-collaboration
 \end{verbatim}
 
-After receiving this response, the VOSpace service concludes the user is a member of group allowed to read the node and proceeds with the user's request.
+After receiving this response, the VOSpace service concludes the user is a member of the group allowed to read the node and proceeds with the user's request.
 
 If the user were not a member of 'my-collaboration', the GMS service would return 200 (OK) with an empty response body.  The VOSpace service would then conclude the user cannot read the node and return a 403 (Permission Denied).
 
@@ -323,7 +323,7 @@ The TAP service caches this group membership information for the lifetime of the
 
 User and group membership information may be considered private, so determining who is allowed to make GMS search calls is an important consideration.  This is part of the reason why the specification only allows for group membership checks to be made by the user whose membership is being checked (the 'target user').  This rule ensures that only the target user can see their group membership information.
 
-This rule also means that the caller of GMS must use the credentials (proxy certificate, token, etc..) of the target user.  Although users may themselves call GMS for membership information it is generally not very useful to them.  The target use case is for programmatic systems to call GMS for authorization checks.  So, those systems must have access to the target user's credentials.  This is accomplished through use of the IVOA Credential Delegation Protocol \citep{2010ivoa.spec.0218P}.
+This rule also means that the caller of GMS must use the credentials (proxy certificate, token, etc) of the target user.  Although users may themselves call GMS for membership information it is generally not very useful to them.  The target use case is for programmatic systems to call GMS for authorization checks.  So, those systems must have access to the target user's credentials.  This is accomplished through use of the IVOA Credential Delegation Protocol \citep{2010ivoa.spec.0218P}.
 
 An alternative to this approach, which was considered, is to also allow the use of privileged credentials to make GMS calls.  That is: allow the set of systems that need to do authorization checks to make GMS calls for any target user.  With this there are a number of complications.
 
@@ -342,31 +342,15 @@ In this section, standard VO XML namespace prefixes apply, i.e.,
 \xmlel{vs:} corresponds to VODataService \citep{2010ivoa.spec.1202P}
 \nolinkurl{http://www.ivoa.net/xml/VODataService/v1.1}.
 
-Group membership services may be registered using any suitable resource
-type, where plain VOResource \xmlel{vr:Service} records are recommended.
+Group membership services may be registered using any suitable resource type, where plain VOResource \xmlel{vr:Service} records are recommended.
 
-GMS 1.0 resources MUST contain exactly one \xmlel{capability} element with a
-standard id of \nolinkurl{ivo://ivoa.net/std/gms#search-1.0}.\todo{I'd
-still be in favour of just using search, i.e., drop all versioning info
--- MD}  More capabilities with other or no standard ids are allowed.
+GMS 1.0 resources MUST contain exactly one \xmlel{capability} element with a standard id of \nolinkurl{ivo://ivoa.net/std/gms#search-1.0}.  More capabilities with other or no standard ids are allowed.
 
-This capability MUST contain one or more interface(s) of type
-\xmlel{vs:ParamHTTP} and a \xmlel{role} attribute set to \verb|std|, the
-\xmlel{accessURL} of which declare the GMS search endpoint as defined in
-the present document.  As dicussed in sect.~\ref{subsec:creddel}, such
-interfaces will in general define a \xmlel{securityMethod}.  When a
-service supports multiple authentication methods, it has to include
-multiple \xmlel{interface} elements.
+This capability MUST contain one or more interface(s) of type \xmlel{vs:ParamHTTP} and a \xmlel{role} attribute set to \verb|std|, the \xmlel{accessURL} of which declare the GMS search endpoint as defined in the present document.  As dicussed in sect.~\ref{subsec:creddel}, such interfaces will in general define a \xmlel{securityMethod}.  When a service supports multiple authentication methods, it has to include multiple \xmlel{interface} elements.
 
-Declaring other interfaces in the \verb|gms#search| capability is
-discouraged for interoperability; no such additional interface may
-declare a \xmlel{role} of \verb|std|.  Services wishing to declare
-non-GMS interfaces (e.g., for use with non-VO standards) should do so in
-separate \xmlel{capability} elements.
+Declaring other interfaces in the \verb|gms#search| capability is discouraged for interoperability; no such additional interface may declare a \xmlel{role} of \verb|std|.  Services wishing to declare non-GMS interfaces (e.g., for use with non-VO standards) should do so in separate \xmlel{capability} elements.
 
-This way of registering enables the service discovery pattern discussed
-in sect.~\ref{subsec:groupids}.  A sample registry record is distributed
-with this specification\footnote{\auxiliaryurl{sample-record.xml}}.
+This way of registering enables the service discovery pattern discussed in sect.~\ref{subsec:groupids}.  A sample registry record is distributed with this specification\footnote{\auxiliaryurl{sample-record.xml}}.
 
 
 \section {Implementation}
@@ -406,7 +390,7 @@ If one of the contained groups exists at another GMS instance, perhaps outside o
 \begin{itemize}
 \item{API modification: groups identified by query parameter, not path element}
 \item{API modification: multiple group parameters to allow clients to minimize required GMS calls}
-\item{Update examples with to match API changes}
+\item{Update examples to match API changes}
 \end{itemize}
 
 \subsection{Changes from WD-GMS-1.0-20190506}
