@@ -1,6 +1,10 @@
 \documentclass[11pt,a4paper]{ivoa}
 \input tthdefs
 
+\lstloadlanguages{SQL}
+\lstset{flexiblecolumns=true,basicstyle=\ttfamily,showstringspaces=False}
+\usepackage{todonotes}
+
 \title{Group Membership Service}
 
 \ivoagroup{Grid and Web Services}
@@ -45,7 +49,7 @@ infrastructure that enable VO applications.
 
 \section{Introduction}
 
-Through standard IVOA protocols, many astronomy data centres and institutes offer users access to datasets through Datalink (Datalink \citep{2015ivoa.spec.0617D}) and SODA (Server-side Operations for Data Access \citep{2017ivoa.spec.0517B}, etc), metadata and catalogs through TAP (\citep{2019ivoa.spec.0927D}), and storage through VOSpace (\citep{2018ivoa.spec.0621G}).  There are also many instances of custom access services to astronomy resources.  In certain cases the information within these services is proprietary -- it is only allowed to be accessed by certain individuals.  Due to the wide variety and inherently institute-specific set of rules that may define how the information is proprietary, it is beneficial to the owners and maintainers of the rules to have a standard way of describing who has access to what resources.  Additionally, the rules describing resource access may be determined by an entity external to the holder of these resources.  To these ends, this document sets out a standard, programmatic, and interoperable method of determining whether a given user is allowed to access a given proprietary resource.
+Through standard IVOA protocols, many astronomy data centres and institutes offer users access to datasets through Datalink \citep{2015ivoa.spec.0617D} and SODA (Server-side Operations for Data Access, \citet{2017ivoa.spec.0517B}), metadata and catalogs through TAP \citep{2010ivoa.spec.0327D}, and storage through VOSpace \citep{2018ivoa.spec.0621G}.  There are also many instances of custom access services to astronomy resources.  In certain cases the information within these services is proprietary -- it is only allowed to be accessed by certain individuals.  Due to the wide variety and inherently institute-specific set of rules that may define how the information is proprietary, it is beneficial to the owners and maintainers of the rules to have a standard way of describing who has access to what resources.  Additionally, the rules describing resource access may be determined by an entity external to the holder of these resources.  To these ends, this document sets out a standard, programmatic, and interoperable method of determining whether a given user is allowed to access a given proprietary resource.
 
 The ideas presented by GMS enable data centres to do authorization checks in an interoperable fashion.  In the context of authorization, interoperability can viewed on two levels:  interoperability amongst the cooperating services \emph{within} a data centre, and interoperability \emph{between} data centres.  The same approach is taken for both scenarios, meaning that the location of a GMS service is irrelevant. 
 
@@ -58,7 +62,7 @@ Most facilities have a period of time in which only the Principal Investigator a
 
 Programs create higher level products such as catalogs and images.  On many occasions, they must be accessible to only those who are authorized.
 
-Many organizations have internal, custom services with private or sensitive data.  Similarily, organizations are using TAP to to access relational data that serves only internal or operational purposes and should not be exposed to the general public.
+Many organizations have internal, custom services with private or sensitive data.  Similarily, organizations are using TAP to access relational data that serves only internal or operational purposes and should not be exposed to the general public.
 
 In these ways and others, proprietary resources exist.  For these to be made available to those with authorization, we require a consistent way of performing authorization checks within and between organizations.
 
@@ -74,7 +78,7 @@ In these ways and others, proprietary resources exist.  For these to be made ava
 \end{figure}
 
 Fig.~\ref{fig:archdiag} shows the role this document plays within the
-IVOA architecture \citep{note:VOARCH}.
+IVOA architecture \citep{2010ivoa.rept.1123A}.
 
 GMS can be used by any software that needs to check, for authorization purposes, whether a user is a member of group.  Because of this general purpose functionality, GMS slices through all IVOA standards and lies in the middle of the SHARING technical resource in the IVOA architecture diagram.  Indeed, GMS allows for the sharing of proprietary resources to a limited audience.
 
@@ -91,7 +95,7 @@ GMS presents an interoperable solution for item 2, the \emph{authorization check
 
 \subsection{Definitions}
 
-\paragraph{Authentication} User identification through credentials or identity provider.  Refer to the IVOA Single-Sign-On Profile: Authentication Mechanisms.  \citep{2017ivoa.spec.0524T}
+\paragraph{Authentication} User identification through credentials or identity provider.  Refer to the IVOA Single-Sign-On Profile: Authentication Mechanisms  \citep{2017ivoa.spec.0524T}.
 
 \paragraph{Authorization} Making the decision of whether to grant a user permission to a given resource.  The decision usually involves knowing the user's identity obtained through authentication.
 
@@ -150,7 +154,7 @@ Systems must use the information in the group identifier to determine if the use
 
 A \emph{group identifier} is used to uniquely and universally identify individual groups.  They are attached to proprietary resources for the purpose of referencing the group (or groups) whose members are authorized to access that resource.  When a system needs to do an authorization check because a request for access is being made, it can make the decision based on the response of a membership call to a GMS service.  With the help of an IVOA Registry, the system has all the information it needs within the group identifier to locate the associated GMS service and formulate the REST call to that service for the membership check.
 
-Group identifiers are IVOA Identifiers (IVOIDs) \citep{2016ivoa.spec.0523D}.  This means they can be used to look up the underlying GMS service in an IVOA registry (as explained below).  Group names are specified in the \emph{query} part of the IVOID and are mandatory in group identifiers.  So, group identifiers must conform to all the rules of IVOIDs and also MUST include the \emph{query} part of an IVOID representing the group name.
+Group identifiers are IVOA Identifiers (IVOIDs, \citet{2016ivoa.spec.0523D}).  This means they can be used to look up the underlying GMS service in an IVOA registry (as is explained in the IVOA Identifiers document).  Group names are specified in the \emph{query} part of the IVOID and are mandatory in group identifiers.  So, group identifiers must conform to all the rules of IVOIDs and also MUST include the \emph{query} part of an IVOID representing the group name.
 
 Below is an example of a valid and typical group identifier with group name \emph{mygroup}:
 
@@ -177,16 +181,16 @@ At the time of writing, the approach the IVOA is taking to discover service auth
 
 The following query will return a row for each access\_url and security\_method\_id combination.  The ivoid value is calculated by removing the query string from the group identifier.  Since we are looking to perform an \emph{is member} call, we ask for the GMS search capability, identified by the GMS search standardID (see section \ref{subsec:api}). \footnote{To find a RegTap service on which to execute this query, consult http://rofr.ivoa.net/}
 
-\begin{verbatim}
-    SELECT access_url, security_method_id
-    FROM rr.interface
-    NATURAL JOIN rr.capability
-    NATURAL JOIN rr.resource
-    WHERE
-      ivoid = 'ivo://authority.example.com/groupService'
-      AND standard_id = 'ivo://ivoa.net/std/gms#search-1.0'
-      AND intf_role='std'
-\end{verbatim}
+\begin{lstlisting}[language=SQL,xleftmargin=2em]
+SELECT access_url, security_method_id
+FROM rr.interface
+NATURAL JOIN rr.capability
+NATURAL JOIN rr.resource
+WHERE
+  ivoid = 'ivo://authority.example.com/groupService'
+  AND standard_id = 'ivo://ivoa.net/std/gms#search-1.0'
+  AND intf_role='std'
+\end{lstlisting}
 
 This would result in one or more access URLs capable of performing a GMS search on the group 'groupName' with its corresponding security method support.  For example, it could return two rows to the same GMS instance with support for different security methods:
 
@@ -194,14 +198,14 @@ This would result in one or more access URLs capable of performing a GMS search 
 \hskip-1.0cm
 \begin{tabular}{l l}
 \textbf{access\_url} & \textbf{security\_method\_id} \\
-\hline
+\sptablerule
 https://server.example.com/gms/search & ivo://ivoa.net/sso\#tls-with-certificate \\
 https://server.example.com/gms/search & ivo://ivoa.net/sso\#token \\
-\hline
+\sptablerule
 \end{tabular}
 \vspace{3mm}
 
-To then perform the group membership query on any of these URLs, the service would formulate a REST call as defined by the GMS Search API.  Since it required that the calls be made \emph{as the user}, the call, in this example, must be made with either the user's delegated client certificate or the user's delegated authorization token with the appropriate scope.
+To then perform the group membership query on any of these URLs, the service would formulate a REST call as defined by the GMS Search API.  Since it is required that the calls be made \emph{as the user}, the call, in this example, must be made with either the user's delegated client certificate or the user's delegated authorization token with the appropriate scope.
 
 Clients and services that will require frequent lookups of GMS services should strongly consider caching a map of group identifiers keys to access URLs values. Access URLs probably change very infrequently.  Caching would reduce the traffic on the RegTap services and improve the performance of authorization checks in general. 
 
@@ -329,6 +333,42 @@ Another problem with allowing external GMS calls with privileged accounts is the
 
 When service calls are always made by the original calling user, services such as GMS then only have to concern themselves with the caller of the service, so the complexity and potential for error is much reduced.  Information privacy is easily controlled when only the user may see membership information.
 
+
+\section{Registering GMS Services}
+
+In this section, standard VO XML namespace prefixes apply, i.e.,
+\xmlel{vr:} correspondes to VOResource \citep{2018ivoa.spec.0625P}
+\nolinkurl{http://www.ivoa.net/xml/VOResource/v1.0}, and
+\xmlel{vs:} corresponds to VODataService \citep{2010ivoa.spec.1202P}
+\nolinkurl{http://www.ivoa.net/xml/VODataService/v1.1}.
+
+Group membership services may be registered using any suitable resource
+type, where plain VOResource \xmlel{vr:Service} records are recommended.
+
+GMS 1.0 resources MUST contain exactly one \xmlel{capability} element with a
+standard id of \nolinkurl{ivo://ivoa.net/std/gms#search-1.0}.\todo{I'd
+still be in favour of just using search, i.e., drop all versioning info
+-- MD}  More capabilities with other or no standard ids are allowed.
+
+This capability MUST contain one or more interface(s) of type
+\xmlel{vs:ParamHTTP} and a \xmlel{role} attribute set to \verb|std|, the
+\xmlel{accessURL} of which declare the GMS search endpoint as defined in
+the present document.  As dicussed in sect.~\ref{subsec:creddel}, such
+interfaces will in general define a \xmlel{securityMethod}.  When a
+service supports multiple authentication methods, it has to include
+multiple \xmlel{interface} elements.
+
+Declaring other interfaces in the \verb|gms#search| capability is
+discouraged for interoperability; no such additional interface may
+declare a \xmlel{role} of \verb|std|.  Services wishing to declare
+non-GMS interfaces (e.g., for use with non-VO standards) should do so in
+separate \xmlel{capability} elements.
+
+This way of registering enables the service discovery pattern discussed
+in sect.~\ref{subsec:groupids}.  A sample registry record is distributed
+with this specification\footnote{\auxiliaryurl{sample-record.xml}}.
+
+
 \section {Implementation}
 
 \subsection {Implementation Options}
@@ -350,10 +390,17 @@ It may be functionally attractive to support groups within groups.  If this is i
 
 If one of the contained groups exists at another GMS instance, perhaps outside of the organization, then the service may transitively query that service to determine group membership, taking care to avoid a loop caused by groups being members of each other.
 
+
 \appendix
 
 \section{Changes from Previous Versions}
 \label{sec:changehistory}
+
+\subsection{Changes from PR-1.0-20210609}
+
+\begin{itemize}
+\item Adding a section on how to register GMS services.
+\end{itemize}
 
 \subsection{Changes from WD-GMS-1.0-20200210}
 \begin{itemize}
