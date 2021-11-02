@@ -226,7 +226,7 @@ For a successful HTTP GET to the search endpoint (whether \emph{group} parameter
 
 On a successful HTTP GET, the service must write the name of each of the groups in which the user is a member in the response body in \emph{text/plain} format.  Each group name (even the last) must end with a newline as a CRLF\footnote{Carriage Return character (ASCII 13) plus a Line Feed character (ASCII 10)}).  If the user is not a member of any groups within the scope of the search the service must return an empty response body.  The service should ignore any group names it does not recognize.
 
-It is the authenticated user (the user making the REST call) who is the subject of the of the membership question.  Users' identity is determined by one of the authentication mechanisms described in the IVOA Single-Sign-On Profile.  Because GMS is most useful to services with proprietary information (ie. it is not users themselves), users' delegated credentials will be used extensively to make GMS calls.  (See section \ref{subsec:creddel} for more information.)
+It is the authenticated user (the user making the REST call) who is the subject of the membership question.  Users' identity is determined by one of the authentication mechanisms described in the IVOA Single-Sign-On Profile.  Because GMS is most useful to services with proprietary information (ie. it is not users themselves), users' delegated credentials will be used extensively to make GMS calls.  (See section \ref{subsec:creddel} for more information.)
 
 If the user cannot be identified from the call because they have not authenticated (the request is anonymous), the service must respond with HTTP 401 (Unauthorized).  The response message should indicate that authentication is required to use the service.
 
@@ -237,7 +237,7 @@ If an authenticated user could not be identitfied from the HTTP request the serv
 
 \paragraph{Example 1 - Group access to a VOSpace Node}
 
-A VOSpace service receives a request from a user read a node that has the group-read property set to
+A VOSpace service receives a request from a user to read a node that has the group-read property set to
 
 \begin{verbatim}
 ivo://authority.example.com/gms/instance1?my-collaboration
@@ -261,7 +261,7 @@ The GMS service identifies the user and determines that the user is a member of 
 my-collaboration
 \end{verbatim}
 
-After receiving this response, the VOSpace service concludes the user is a member of group allowed to read the node and proceeds with the user's request.
+After receiving this response, the VOSpace service concludes the user is a member of the group allowed to read the node and proceeds with the user's request.
 
 If the user were not a member of 'my-collaboration', the GMS service would return 200 (OK) with an empty response body.  The VOSpace service would then conclude the user cannot read the node and return a 403 (Permission Denied).
 
@@ -309,7 +309,7 @@ The GMS service returns HTTP 200 and all the groups in which the calling user is
 \begin{verbatim}
 my-collaboration
 my-other-collaboration
-my-thrid-collaboration
+my-third-collaboration
 \end{verbatim}
 
 The TAP service caches this group membership information for the lifetime of the request so that it can be used if necessary when checking other rows.  If a Group URI with a different \emph{authority} is encountered, the TAP service must call that GMS service too and add the list of groups from that authority to its cache.
@@ -319,7 +319,7 @@ The TAP service caches this group membership information for the lifetime of the
 
 User and group membership information may be considered private, so determining who is allowed to make GMS search calls is an important consideration.  This is part of the reason why the specification only allows for group membership checks to be made by the user whose membership is being checked (the 'target user').  This rule ensures that only the target user can see their group membership information.
 
-This rule also means that the caller of GMS must use the credentials (proxy certificate, token, etc..) of the target user.  Although users may themselves call GMS for membership information it is generally not very useful to them.  The target use case is for programmatic systems to call GMS for authorization checks.  So, those systems must have access to the target user's credentials.  This is accomplished through use of the IVOA Credential Delegation Protocol \citep{2010ivoa.spec.0218P}.
+This rule also means that the caller of GMS must use the credentials (proxy certificate, token, etc) of the target user.  Although users may themselves call GMS for membership information it is generally not very useful to them.  The target use case is for programmatic systems to call GMS for authorization checks.  So, those systems must have access to the target user's credentials.  This is accomplished through use of the IVOA Credential Delegation Protocol \citep{2010ivoa.spec.0218P}.
 
 An alternative to this approach, which was considered, is to also allow the use of privileged credentials to make GMS calls.  That is: allow the set of systems that need to do authorization checks to make GMS calls for any target user.  With this there are a number of complications.
 
@@ -359,7 +359,7 @@ If one of the contained groups exists at another GMS instance, perhaps outside o
 \begin{itemize}
 \item{API modification: groups identified by query parameter, not path element}
 \item{API modification: multiple group parameters to allow clients to minimize required GMS calls}
-\item{Update examples with to match API changes}
+\item{Update examples to match API changes}
 \end{itemize}
 
 \subsection{Changes from WD-GMS-1.0-20190506}
