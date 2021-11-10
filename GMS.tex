@@ -188,7 +188,7 @@ NATURAL JOIN rr.capability
 NATURAL JOIN rr.resource
 WHERE
   ivoid = 'ivo://authority.example.com/groupService'
-  AND standard_id = 'ivo://ivoa.net/std/gms#search-1.0'
+  AND standard_id LIKE 'ivo://ivoa.net/std/gms#search-1.%'
   AND intf_role='std'
 \end{lstlisting}
 
