@@ -51,7 +51,7 @@ infrastructure that enable VO applications.
 
 Through standard IVOA protocols, many astronomy data centres and institutes offer users access to datasets through Datalink \citep{2015ivoa.spec.0617D} and SODA (Server-side Operations for Data Access, \citet{2017ivoa.spec.0517B}), metadata and catalogs through TAP \citep{2010ivoa.spec.0327D}, and storage through VOSpace \citep{2018ivoa.spec.0621G}.  There are also many instances of custom access services to astronomy resources.  In certain cases the information within these services is proprietary -- it is only allowed to be accessed by certain individuals.  Due to the wide variety and inherently institute-specific set of rules that may define how the information is proprietary, it is beneficial to the owners and maintainers of the rules to have a standard way of describing who has access to what resources.  Additionally, the rules describing resource access may be determined by an entity external to the holder of these resources.  To these ends, this document sets out a standard, programmatic, and interoperable method of determining whether a given user is allowed to access a given proprietary resource.
 
-The ideas presented by GMS enable data centres to do authorization checks in an interoperable fashion.  In the context of authorization, interoperability can viewed on two levels:  interoperability amongst the cooperating services \emph{within} a data centre, and interoperability \emph{between} data centres.  The same approach is taken for both scenarios, meaning that the location of a GMS service is irrelevant. 
+The ideas presented by GMS enable data centres to do authorization checks in an interoperable fashion.  In the context of authorization, interoperability can viewed on two levels:  interoperability amongst the cooperating services \emph{within} a data centre, and interoperability \emph{between} data centres.  The same approach is taken for both scenarios, meaning that the location of a GMS service is irrelevant.
 
 Interoperability aside, GMS describes a simple, general, maintainable, and scalable approach to performing authorization, and so is a recommended architectural pattern for managing access to proprietary resources.
 
@@ -207,7 +207,7 @@ https://server.example.com/gms/search & ivo://ivoa.net/sso\#token \\
 
 To then perform the group membership query on any of these URLs, the service would formulate a REST call as defined by the GMS Search API.  Since it is required that the calls be made \emph{as the user}, the call, in this example, must be made with either the user's delegated client certificate or the user's delegated authorization token with the appropriate scope.
 
-Clients and services that will require frequent lookups of GMS services should strongly consider caching a map of group identifiers keys to access URLs values. Access URLs probably change very infrequently.  Caching would reduce the traffic on the RegTap services and improve the performance of authorization checks in general. 
+Clients and services that will require frequent lookups of GMS services should strongly consider caching a map of group identifiers keys to access URLs values. Access URLs probably change very infrequently.  Caching would reduce the traffic on the RegTap services and improve the performance of authorization checks in general.
 
 \section{GMS Search API}
 
@@ -374,6 +374,10 @@ It may be functionally attractive to support groups within groups.  If this is i
 
 If one of the contained groups exists at another GMS instance, perhaps outside of the organization, then the service may transitively query that service to determine group membership, taking care to avoid a loop caused by groups being members of each other.
 
+\subsection{Group Name Reuse}
+\label{subsec:groupnamereuse}
+
+GMS Services should not allow group name reuse as there is a danger of inadvertently granting access to the members of a reused group.  For instance, if an active group is used to protect a number of resources, it means that those resources reference the group URI.  If the associated group is deleted and then recreated with a new set of members, and if the remote group references are still in place, the new members will inherit access to those resources.  Thus, it is recommended that group names are never resused as it is impossible to discover from where the group has referneces.
 
 \appendix
 
