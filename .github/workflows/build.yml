@@ -42,5 +42,5 @@ jobs:
         
     - uses: actions/upload-artifact@v1
       with:
-        name: DataLinkImp.pdf Preview
-        path: DataLinkImp.pdf
+        name: GMSImp.pdf Preview
+        path: GMSImp.pdf
