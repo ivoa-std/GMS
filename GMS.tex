@@ -154,7 +154,7 @@ Systems must use the information in the group identifier to determine if the use
 
 A \emph{group identifier} is used to uniquely and universally identify individual groups.  They are attached to proprietary resources for the purpose of referencing the group (or groups) whose members are authorized to access that resource.  When a system needs to do an authorization check because a request for access is being made, it can make the decision based on the response of a membership call to a GMS service.  With the help of an IVOA Registry, the system has all the information it needs within the group identifier to locate the associated GMS service and formulate the REST call to that service for the membership check.
 
-Group identifiers are IVOA Identifiers (IVOIDs, \citet{2016ivoa.spec.0523D}).  This means they can be used to look up the underlying GMS service in an IVOA registry (as is explained in the IVOA Identifiers document).  Group names are specified in the \emph{query} part of the IVOID and are mandatory in group identifiers.  So, group identifiers must conform to all the rules of IVOIDs and also MUST include the \emph{query} part of an IVOID representing the group name.
+Group identifiers are IVOA Identifiers (IVOIDs, \citet{2016ivoa.spec.0523D}).  This means they can be used to look up the underlying GMS service in an IVOA registry (as is explained in the IVOA Identifiers document).  Group names are specified in the \emph{query} part of the IVOID and are mandatory in group identifiers.  So, group identifiers must conform to all the rules of IVOIDs and also MUST include the \emph{query} part of an IVOID representing the group name.  Group names are case-sensitive and must consist only of alphanumeric characters (ASCII 65-122) and any of the following: commas, dashes, periods, underscores, and tildes (ASCII 44, 45, 46, 95, and 126 respectively).
 
 Below is an example of a valid and typical group identifier with group name \emph{mygroup}:
 
@@ -188,7 +188,7 @@ NATURAL JOIN rr.capability
 NATURAL JOIN rr.resource
 WHERE
   ivoid = 'ivo://authority.example.com/groupService'
-  AND standard_id = 'ivo://ivoa.net/std/gms#search-1.0'
+  AND standard_id LIKE 'ivo://ivoa.net/std/gms#search-1.%'
   AND intf_role='std'
 \end{lstlisting}
 
@@ -207,7 +207,9 @@ https://server.example.com/gms/search & ivo://ivoa.net/sso\#token \\
 
 To then perform the group membership query on any of these URLs, the service would formulate a REST call as defined by the GMS Search API.  Since it is required that the calls be made \emph{as the user}, the call, in this example, must be made with either the user's delegated client certificate or the user's delegated authorization token with the appropriate scope.
 
-Clients and services that will require frequent lookups of GMS services should strongly consider caching a map of group identifiers keys to access URLs values. Access URLs probably change very infrequently.  Caching would reduce the traffic on the RegTap services and improve the performance of authorization checks in general.
+Clients and services that will require frequent lookups of GMS services should strongly consider caching a map of group identifier keys to access URLs values. Access URLs likely change very infrequently.  Caching will reduce the traffic on the RegTap services and improve the performance of authorization checks in general.
+
+Group membership information from specific GMS services can also be cached.  Again, caching will improve performance, but will also add tolerance to authorization checks when GMS services are down, as clients and services can consult the cache for membership information as a backup option.  The duration in which a group membership cache should be considered valid (not stale) is the decision of the party performing the authorization check--it is most informed as to the importance of up-to-date membership information for doing authorization checks.  GMS services should, however, set the HTTP response header \emph{Expires} to an HTTP-date (see section 5.3 in RFC 7234 \citep{std:RFC7234}) indicating how long the service thinks the membership information should be considered valid.  This date can help clients choose an expiry time for group membership caches.
 
 \section{GMS Search API}
 
@@ -234,7 +236,7 @@ It is the authenticated user (the user making the REST call) who is the subject 
 
 If the user cannot be identified from the call because they have not authenticated (the request is anonymous), the service must respond with HTTP 401 (Unauthorized).  The response message should indicate that authentication is required to use the service.
 
-If an authenticated user could not be identitfied from the HTTP request the service must response with HTTP 403 (Forbidden).
+If an authenticated user could not be identified from the HTTP request the service must response with HTTP 403 (Forbidden).
 
 \subsection {Search Examples}
 \label{subsec:examples}
