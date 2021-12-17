@@ -376,6 +376,10 @@ It may be functionally attractive to support groups within groups.  If this is i
 
 If one of the contained groups exists at another GMS instance, perhaps outside of the organization, then the service may transitively query that service to determine group membership, taking care to avoid a loop caused by groups being members of each other.
 
+\subsection{Group Name Reuse}
+\label{subsec:groupnamereuse}
+
+GMS Services should not allow group name reuse as there is a danger of inadvertently granting access to the members of a reused group.  For instance, if an active group is used to protect a number of resources, it means that those resources reference the group URI.  If the associated group is deleted and then recreated with a new set of members, and if the remote group references are still in place, the new members will inherit access to those resources.  Thus, it is recommended that group names are never resused as it is impossible to discover from where the group has referneces.
 
 \appendix
 
