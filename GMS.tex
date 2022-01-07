@@ -152,7 +152,7 @@ Systems must use the information in the group identifier to determine if the use
 \subsection{Group Identifiers}
 \label{subsec:groupids}
 
-A \emph{group identifier} is used to uniquely and universally identify individual groups.  They are attached to proprietary resources for the purpose of referencing the group (or groups) whose members are authorized to access that resource.  When a system needs to do an authorization check because a request for access is being made, it can make the decision based on the response of a membership call to a GMS service.  With the help of an IVOA Registry, the system has all the information it needs within the group identifier to locate the associated GMS service and formulate the REST call to that service for the membership check.
+A \emph{group identifier} is used to uniquely and universally identify individual groups.  They are attached to proprietary resources for the purpose of referencing the group (or groups) whose members are authorized to access that resource.  When a system needs to do an authorization check because a request for access is being made, it can make the decision based on the response of a membership call to a GMS service.  By using an IVOA Registry, the system has all the information it needs within the group identifier to locate the associated GMS service and formulate the REST call to that service for the membership check.
 
 Group identifiers are IVOA Identifiers (IVOIDs, \citet{2016ivoa.spec.0523D}).  This means they can be used to look up the underlying GMS service in an IVOA registry (as is explained in the IVOA Identifiers document).  Group names are specified in the \emph{query} part of the IVOID and are mandatory in group identifiers.  So, group identifiers must conform to all the rules of IVOIDs and also MUST include the \emph{query} part of an IVOID representing the group name.  Group names are case-sensitive and must consist only of alphanumeric characters (ASCII 65-122) and any of the following: commas, dashes, periods, underscores, and tildes (ASCII 44, 45, 46, 95, and 126 respectively).
 
@@ -162,7 +162,7 @@ Below is an example of a valid and typical group identifier with group name \emp
 ivo://authority.example.com/groupService?mygroup
 \end{verbatim}
 
-To obtain the access URL for a GMS service, a Registry query is performed. Using RegTAP \citep{2014ivoa.spec.1208D}, one uses the following three costraints:
+To obtain the access URL for a GMS service, a Registry query is performed. Using RegTAP \citep{2014ivoa.spec.1208D}, one uses the following three costraints from the \emph{interface} table:
 
 \begin{itemize}
 \item{\emph{ivoid}} - The \emph{registry part} of the group identifier.
@@ -207,6 +207,9 @@ https://server.example.com/gms/search & ivo://ivoa.net/sso\#token \\
 
 To then perform the group membership query on any of these URLs, the service would formulate a REST call as defined by the GMS Search API.  Since it is required that the calls be made \emph{as the user}, the call, in this example, must be made with either the user's delegated client certificate or the user's delegated authorization token with the appropriate scope.
 
+\subsection{Caching}
+\label{subsec:caching}
+
 Clients and services that will require frequent lookups of GMS services should strongly consider caching a map of group identifier keys to access URLs values. Access URLs likely change very infrequently.  Caching will reduce the traffic on the RegTap services and improve the performance of authorization checks in general.
 
 Group membership information from specific GMS services can also be cached.  Again, caching will improve performance, but will also add tolerance to authorization checks when GMS services are down, as clients and services can consult the cache for membership information as a backup option.  The duration in which a group membership cache should be considered valid (not stale) is the decision of the party performing the authorization check--it is most informed as to the importance of up-to-date membership information for doing authorization checks.  GMS services should, however, set the HTTP response header \emph{Expires} to an HTTP-date (see section 5.3 in RFC 7234 \citep{std:RFC7234}) indicating how long the service thinks the membership information should be considered valid.  This date can help clients choose an expiry time for group membership caches.
@@ -230,7 +233,7 @@ The value of each \emph{group} parameter is the groupName part of a Group Identi
 
 For a successful HTTP GET to the search endpoint (whether \emph{group} parameters are included or not), the service shall respond with HTTP 200 (OK).  Even if the user belongs to none of the groups in the scope of the request, the service shall respond with a 200 if the membership check(s) was successful.
 
-On a successful HTTP GET, the service must write the name of each of the groups in which the user is a member in the response body in \emph{text/plain} format.  Each group name (even the last) must end with a newline as a CRLF\footnote{Carriage Return character (ASCII 13) plus a Line Feed character (ASCII 10)}).  If the user is not a member of any groups within the scope of the search the service must return an empty response body.  The service should ignore any group names it does not recognize.
+On a successful HTTP GET, the service must write the name of each of the groups in which the user is a member in the response body in \emph{text/plain} format.  Each group name (even the last) must end with a newline as a CRLF\footnote{Carriage Return character (ASCII 13) plus a Line Feed character (ASCII 10)}.  If the user is not a member of any groups within the scope of the search the service must return an empty response body.  The service should ignore any group names it does not recognize.
 
 It is the authenticated user (the user making the REST call) who is the subject of the membership question.  Users' identity is determined by one of the authentication mechanisms described in the IVOA Single-Sign-On Profile.  Because GMS is most useful to services with proprietary information (ie. it is not users themselves), users' delegated credentials will be used extensively to make GMS calls.  (See section \ref{subsec:creddel} for more information.)
 
@@ -327,19 +330,12 @@ User and group membership information may be considered private, so determining 
 
 This rule also means that the caller of GMS must use the credentials (proxy certificate, token, etc) of the target user.  Although users may themselves call GMS for membership information it is generally not very useful to them.  The target use case is for programmatic systems to call GMS for authorization checks.  So, those systems must have access to the target user's credentials.  This is accomplished through use of the IVOA Credential Delegation Protocol \citep{2010ivoa.spec.0218P}.
 
-An alternative to this approach, which was considered, is to also allow the use of privileged credentials to make GMS calls.  That is: allow the set of systems that need to do authorization checks to make GMS calls for any target user.  With this there are a number of complications.
-
-New systems that need to do authorization checks require authorization to make those calls so would have to be added to a set of rules.  This is a maintenance step that can be avoided.  When there is a chain of privileged service calls that need to be made, the complexity of mapping and maintaining those rules increases quickly.  This complexity is compounded when needing to interoperate with external GMS instances.
-
-Another problem with allowing external GMS calls with privileged accounts is the need for a trust arrangement between the hosts.  Organizations would need to ask each other to allow GMS calls to work for certain privileged accounts.
-
-When service calls are always made by the original calling user, services such as GMS then only have to concern themselves with the caller of the service, so the complexity and potential for error is much reduced.  Information privacy is easily controlled when only the user may see membership information.
-
+An alternative to this approach, which was considered, is to use privileged credentials to make GMS calls.  With this a number of problems related to the complexity of managing trust relationships arise.  Thus, such super-user credentials are not to be used for making calls to a GMS service.
 
 \section{Registering GMS Services}
 
 In this section, standard VO XML namespace prefixes apply, i.e.,
-\xmlel{vr:} correspondes to VOResource \citep{2018ivoa.spec.0625P}
+\xmlel{vr:} corresponds to VOResource \citep{2018ivoa.spec.0625P}
 \nolinkurl{http://www.ivoa.net/xml/VOResource/v1.0}, and
 \xmlel{vs:} corresponds to VODataService \citep{2010ivoa.spec.1202P}
 \nolinkurl{http://www.ivoa.net/xml/VODataService/v1.1}.
