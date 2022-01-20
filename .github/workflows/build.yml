@@ -29,18 +29,7 @@ jobs:
         test -f GMS.pdf
         test -f GMS.bbl
         
-    - name: Build the implementation note
-      run: make --makefile=MakefileImp biblio forcetex
-      
-    - name: Check the output
-      run: test -f GMSImp.pdf
-        
     - uses: actions/upload-artifact@v1
       with:
         name: GMS.pdf Preview
         path: GMS.pdf
-        
-    - uses: actions/upload-artifact@v1
-      with:
-        name: GMSImp.pdf Preview
-        path: GMSImp.pdf
