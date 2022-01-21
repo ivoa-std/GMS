@@ -170,9 +170,7 @@ To obtain the access URL for a GMS service, a Registry query is performed. Using
 \item{\emph{intf\_role}} - Always '\emph{std}', to indicate a standard service is being queried for.
 \end{itemize}
 
-For reasons explained in section \ref{subsec:creddel}, calls to a GMS service MUST be authenticated.  Please refer to the latest version of the IVOA Single-Sign-On Profile \citep{2017ivoa.spec.0524T} for details on authentication discovery and use.  
-
-The following query will return the \emph{access\_url} for the example group identifier \emph{ivo://authority.example.com/groupService?mygroup}.  The value for \emph{ivoid} is calculated by removing the query string from the group identifier.  Since we are looking to perform an \emph{is member} call, we ask for the GMS search capability, identified by the GMS search standardID (see section \ref{subsec:api}). \footnote{To find a RegTap service on which to execute this query, consult http://rofr.ivoa.net/}
+The following query will return the \emph{access\_url} for the example group identifier \emph{ivo://authority.example.com/groupService?mygroup}.  The value for \emph{ivoid} is calculated by removing the query string from the group identifier.  Since we are intending to make a membership query, we ask for the GMS search capability, identified by the GMS search standardID (see section \ref{subsec:api}). \footnote{To find a RegTap service on which to execute this query, consult http://rofr.ivoa.net/}
 
 \begin{lstlisting}[language=SQL,xleftmargin=2em]
 SELECT access_url
@@ -185,7 +183,9 @@ WHERE
   AND intf_role='std'
 \end{lstlisting}
 
-The method of querying the resulting \emph{access\_url} through the GMS Search API is explained in the next section, \ref{sec:gmssearchap}.
+For reasons explained in section \ref{subsec:creddel}, calls to a GMS service MUST be authenticated.  Please refer to the latest version of the IVOA Single-Sign-On Profile \citep{2017ivoa.spec.0524T} for details on authentication discovery and use.  
+
+The method of querying an \emph{access\_url} for membership information using the GMS Search API is explained in the next section, \ref{sec:gmssearchapi}.
 
 \section{GMS Search API}
 \label{sec:gmssearchapi}
