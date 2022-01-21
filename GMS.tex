@@ -170,19 +170,12 @@ To obtain the access URL for a GMS service, a Registry query is performed. Using
 \item{\emph{intf\_role}} - Always '\emph{std}', to indicate a standard service is being queried for.
 \end{itemize}
 
-and one optional constraint, \emph{security\_method\_id}, used to identify how clients can authenticate to the GMS service.  To find a GMS service that does not require authorization, the value of the security\_method\_id constraint would be NULL.  However, since anonymously accessible GMS services are not likely to exist (see section \ref{subsec:creddel}), the query should either:
+For reasons explained in section \ref{subsec:creddel}, calls to a GMS service MUST be authenticated.  Please refer to the latest version of the IVOA Single-Sign-On Profile \citep{2017ivoa.spec.0524T} for details on authentication discovery and use.  
 
-\begin{itemize}
-\item include a desired security\_method\_id in the where clause, as specified by the IVOA Single-Sign-On Profile \citep{2017ivoa.spec.0524T}, or;
-\item omit the constraint and iterate over the resulting rows to choose an appropriate security method.
-\end{itemize}
-
-At the time of writing, the approach the IVOA is taking to discover service authentication support is changing.  Please consult the latest version of the Single-Sign-On Profile for details.
-
-The following query will return a row for each access\_url and security\_method\_id combination.  The ivoid value is calculated by removing the query string from the group identifier.  Since we are looking to perform an \emph{is member} call, we ask for the GMS search capability, identified by the GMS search standardID (see section \ref{subsec:api}). \footnote{To find a RegTap service on which to execute this query, consult http://rofr.ivoa.net/}
+The following query will return the \emph{access\_url} for the example group identifier \emph{ivo://authority.example.com/groupService?mygroup}.  The value for \emph{ivoid} is calculated by removing the query string from the group identifier.  Since we are looking to perform an \emph{is member} call, we ask for the GMS search capability, identified by the GMS search standardID (see section \ref{subsec:api}). \footnote{To find a RegTap service on which to execute this query, consult http://rofr.ivoa.net/}
 
 \begin{lstlisting}[language=SQL,xleftmargin=2em]
-SELECT access_url, security_method_id
+SELECT access_url
 FROM rr.interface
 NATURAL JOIN rr.capability
 NATURAL JOIN rr.resource
@@ -192,29 +185,10 @@ WHERE
   AND intf_role='std'
 \end{lstlisting}
 
-This would result in one or more access URLs capable of performing a GMS search on the group 'groupName' with its corresponding security method support.  For example, it could return two rows to the same GMS instance with support for different security methods:
-
-\vspace{3mm}
-\hskip-1.0cm
-\begin{tabular}{l l}
-\textbf{access\_url} & \textbf{security\_method\_id} \\
-\sptablerule
-https://server.example.com/gms/search & ivo://ivoa.net/sso\#tls-with-certificate \\
-https://server.example.com/gms/search & ivo://ivoa.net/sso\#token \\
-\sptablerule
-\end{tabular}
-\vspace{3mm}
-
-To then perform the group membership query on any of these URLs, the service would formulate a REST call as defined by the GMS Search API.  Since it is required that the calls be made \emph{as the user}, the call, in this example, must be made with either the user's delegated client certificate or the user's delegated authorization token with the appropriate scope.
-
-\subsection{Caching}
-\label{subsec:caching}
-
-Clients and services that will require frequent lookups of GMS services should strongly consider caching a map of group identifier keys to access URLs values. Access URLs likely change very infrequently.  Caching will reduce the traffic on the RegTap services and improve the performance of authorization checks in general.
-
-Group membership information from specific GMS services can also be cached.  Again, caching will improve performance, but will also add tolerance to authorization checks when GMS services are down, as clients and services can consult the cache for membership information as a backup option.  The duration in which a group membership cache should be considered valid (not stale) is the decision of the party performing the authorization check--it is most informed as to the importance of up-to-date membership information for doing authorization checks.  GMS services should, however, set the HTTP response header \emph{Expires} to an HTTP-date (see section 5.3 in RFC 7234 \citep{std:RFC7234}) indicating how long the service thinks the membership information should be considered valid.  This date can help clients choose an expiry time for group membership caches.
+The method of querying the resulting \emph{access\_url} through the GMS Search API is explained in the next section, \ref{sec:gmssearchap}.
 
 \section{GMS Search API}
+\label{sec:gmssearchapi}
 
 \subsection{API Definition}
 \label{subsec:api}
@@ -365,6 +339,13 @@ An implementation of GMS requires a system that associates users with zero or mo
 \item A VOSpace implementation: It is conceivable that VOSpace could be used to implement GMS, where ContainerNodes represent groups and DataNodes represent users.
 \end{itemize}
 
+\subsection{Caching}
+\label{subsec:caching}
+
+Clients and services that will require frequent lookups of GMS services should strongly consider caching a map of group identifier keys to access URLs values. Access URLs likely change very infrequently.  Caching will reduce the traffic on the RegTap services and improve the performance of authorization checks in general.
+
+Group membership information from specific GMS services can also be cached.  Again, caching will improve performance, but will also add tolerance to authorization checks when GMS services are down, as clients and services can consult the cache for membership information as a backup option.  The duration in which a group membership cache should be considered valid (not stale) is the decision of the party performing the authorization check--it is most informed as to the importance of up-to-date membership information for doing authorization checks.  GMS services should, however, set the HTTP response header \emph{Expires} to an HTTP-date (see section 5.3 in RFC 7234 \citep{std:RFC7234}) indicating how long the service thinks the membership information should be considered valid.  This date can help clients choose an expiry time for group membership caches.
+
 \subsection{Groups of Groups}
 \label{subsec:groupsofgroups}
 
@@ -381,6 +362,13 @@ GMS Services should not allow group name reuse as there is a danger of inadverte
 
 \section{Changes from Previous Versions}
 \label{sec:changehistory}
+
+\subsection{Changes from PR-1.0-20210609}
+\begin{itemize}
+\item General changes from RFC feedback
+\item Added text on caching
+\item Updated wording on authentication
+\end{itemize}
 
 \subsection{Changes from PR-1.0-20210609}
 
