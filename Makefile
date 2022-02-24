@@ -7,7 +7,7 @@ DOCNAME = GMS
 DOCVERSION = 1.0
 
 # Publication date, ISO format; update manually for "releases"
-DOCDATE = 20220222
+DOCDATE = 2022-02-22
 
 # What is it you're writing: NOTE, WD, PR, or REC
 DOCTYPE = REC
@@ -24,6 +24,8 @@ VECTORFIGURES =
 
 # Additional files to distribute (e.g., CSS, schema files, examples...)
 AUX_FILES = sample-record.xml
+
+AUTHOR_EMAIL = major.brian@gmail.com
 
 -include ivoatex/Makefile
 
